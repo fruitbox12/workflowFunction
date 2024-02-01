@@ -89,45 +89,30 @@ router.get('/workflows/:shortId', async (req, res) => {
   try {
     const client = new MongoClient(url);
     await client.connect();
-  
+
     const db = client.db(dbName);
     const workflowRepository = db.collection('workflow');
-  
-    const workflows = await workflowRepository.aggregate([
-      {
-          $match: {
-              shortId: req.params.shortId
-          }
-      },
-      {
-          $lookup: {
-              from: 'execution',
-              localField: 'shortId',
-              foreignField: 'workflowShortId',
-              as: 'execution'
-          }
-      },
-      {
-          $addFields: {
-              executionCount: {
-                  $size: '$execution'
-              }
-          }
-      }
-  ])
-  .toArray()
-  
-  
-    if (workflows.length) {
-        return res.json(workflows[0]);
-    } else {
-        return res.status(404).send(`Workflow ${req.params.shortId} not found`);
+
+    // First query to get workflow
+    const workflow = await workflowRepository.findOne({ shortId: req.params.shortId });
+
+    if (!workflow) {
+      return res.status(404).send(`Workflow ${req.params.shortId} not found`);
     }
+
+    // Second query to get execution data
+    const executionRepository = db.collection('execution');
+    const executionData = await executionRepository.find({ workflowShortId: req.params.shortId }).toArray();
+
+    // Add execution data and count to the workflow object
+    workflow.execution = executionData;
+    workflow.executionCount = executionData.length;
+
+    return res.json(workflow);
   } catch (error) {
     console.error(error);
     res.status(500).send('Server error');
   }
-  
 });
 
  

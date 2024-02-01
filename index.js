@@ -3,8 +3,11 @@ const app = express();
 const cors = require("cors");
 
 const product = require("./api/product");
-app.use(cors());
-
+app.use(cors({
+    origin: '*', // Allow all origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow these methods
+    allowedHeaders: ['Content-Type', 'Authorization'] // Allow these headers
+  }));
 app.use(express.json({ extended: false }));
 
 app.use("/api/v1", product);

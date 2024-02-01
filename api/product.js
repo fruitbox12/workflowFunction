@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const axios = require("axios");
+
 /**
  * GET a specific workflow by shortId.
  *
@@ -126,6 +128,83 @@ router.get('/workflows/:shortId', async (req, res) => {
     res.status(500).send('Server error');
   }
   
+});
+
+ 
+// Function to execute an HTTP node
+async function executeHttpNode(node) {
+  const { method, url, headers, body } = node.data.inputParameters;
+  try {
+      const response = await axios({
+          method,
+          url,
+          headers,
+          data: body
+      });
+      console.log(response.data)
+      return response.data;
+  } catch (error) {
+      console.error('Error executing HTTP node:', error);
+      throw error;
+  }
+}
+
+// Function to resolve node dependencies based on edges
+function resolveNodeDependencies(nodes, edges) {
+  const nodeDependencies = {};
+  edges.forEach(edge => {
+      if (!nodeDependencies[edge.target]) {
+          nodeDependencies[edge.target] = [];
+      }
+      nodeDependencies[edge.target].push(edge.source);
+  });
+  return nodeDependencies;
+}
+
+// Main route to execute the workflow
+// Define a function to generate a short ID (mimicking your 'shortId' utility function)
+function generateShortId(prefix) {
+  return `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Main route to execute the workflow
+router.post('/execute/workflow', async (req, res) => {
+  let execution = {
+      _id: null, // This would normally be set by your database
+      shortId: generateShortId('E'),
+      executionData: "",
+      state: "RUNNING", // Assuming you have predefined states
+      workflowShortId: req.body.workflowShortId, // Assuming this is passed in the request
+      createdDate: new Date(),
+      stoppedDate: new Date()
+  };
+
+  try {
+    const { nodes, edges } = req.body;
+    const nodeDependencies = resolveNodeDependencies(nodes, edges);
+    const nodeResults = {};
+
+    for (const node of nodes) {
+        if (nodeDependencies[node.id]) {
+            await Promise.all(nodeDependencies[node.id].map(depId => nodeResults[depId]));
+        }
+        nodeResults[node.id] = await executeHttpNode(node);
+    }
+
+    await Promise.all(Object.values(nodeResults));
+
+    // Update execution data and state
+    execution.executionData = JSON.stringify(nodeResults);
+    execution.state = "COMPLETED";
+    execution.stoppedDate = new Date();
+
+    res.json(execution);
+} catch (error) {
+    console.error(error);
+    execution.state = "FAILED";
+    execution.stoppedDate = new Date();
+    res.status(500).send('An error occurred while executing the workflow');
+}
 });
 
 

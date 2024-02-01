@@ -102,7 +102,7 @@ router.get('/workflows/:shortId', async (req, res) => {
 
     // Second query to get execution data
     const executionRepository = db.collection('execution');
-    const executionData = await executionRepository.find({ workflowShortId: req.params.shortId }).toArray();
+    const executionData = await executionRepository.find({ workflowShortId: req.params.shortId })
 
     // Add execution data and count to the workflow object
     workflow.execution = executionData;

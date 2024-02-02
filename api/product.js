@@ -118,7 +118,7 @@ router.get('/workflows/:shortId', async (req, res) => {
         const executionCount = await db.collection('execution').countDocuments({ workflowShortId: shortId });
 
         // Fetch all execution data for this workflow
-        const executions = await db.collection('execution').find({ workflowShortId: shortId })
+        const execution = await db.collection('execution').find({ workflowShortId: shortId })
             .toArray(); // Removed the limit and projection to fetch all data
 
         // Combine data into a single response object

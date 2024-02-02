@@ -110,20 +110,33 @@ router.get('/workflows/:shortId', async (req, res) => {
 
         // First, find the workflow by shortId
         const workflow = await db.collection('workflow').findOne({ shortId: shortId });
+        const lastId = req.query.lastId ? ObjectId(req.query.lastId) : null;
 
         if (!workflow) {
             return res.status(404).send('Workflow not found');
         }
         // Then, count the executions for this workflow
         const executionCount = await db.collection('execution').countDocuments({ workflowShortId: shortId });
+  let query = { workflowShortId: shortId };
+        if (lastId) {
+            query['_id'] = { $gt: lastId };
+        }
 
-        // Fetch all execution data for this workflow
-        const execution = await db.collection('execution').find({ workflowShortId: shortId }).toArray(); // Ensure 'executions' matches your collection name
-          const response = {
+        // Fetch execution data for this workflow with pagination
+        const execution = await db.collection('execution')
+                                    .find(query)
+                                    .sort({ _id: 1 }) // Ensure a consistent sort order for pagination
+                                    .limit(10) // Adjust the limit as needed
+                                    .toArray();
+
+        // Combine data into a single response object
+        const response = {
             ...workflow,
             executionCount,
-            execution // Contains all execution data
+            execution, // Contains paginated execution data
+            nextCursor: executions.length > 0 ? executions[executions.length - 1]._id.toString() : null
         };
+
        
 
         res.json(response);

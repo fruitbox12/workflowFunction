@@ -15,62 +15,41 @@ const { MongoClient } = require('mongodb');
 const url = 'mongodb+srv://dylan:43VFMVJVJUFAII9g@cluster0.8phbhhb.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'test';
 router.get('/workflows', async (req, res) => {
-    const client = new MongoClient(url);
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     try {
-        // Connect to the server
+        // Connect to the MongoDB client
         await client.connect();
-        console.log('Connected successfully to server');
         const db = client.db(dbName);
 
-        // Assuming 'workflows' is the collection for Workflow entities
-        const workflowCollection = db.collection('workflows');
-        // Assuming 'executions' is the collection for Execution entities
-        const executionCollection = db.collection('executions');
+        // Perform the aggregation
+        const workflows = await db.collection('workflow').aggregate([
+            {
+                $lookup: {
+                    from: "execution", // The collection to join
+                    localField: "shortId", // Field from the workflow collection
+                    foreignField: "workflowShortId", // Field from the execution collection that references workflow
+                    as: "execution" // The array to add to the workflow documents; contains the joined execution documents
+                }
+            },
+            {
+                $addFields: {
+                    executionCount: { $size: "$execution" }
+                }
+            },
+            {
+                $project: {
+                    execution: 0 // Optionally remove the executions array if you only need the count
+                }
+            }
+        ]).toArray();
 
-        // Fetch all workflows
-        const workflowsCursor = workflowCollection.find({});
-        const basicWorkflows = await workflowsCursor.toArray();
-
-        // Iterate over each workflow to fetch related executions
-        for (let i = 0; i < basicWorkflows.length; i++) {
-            const executionsCursor = executionCollection.find({ workflowShortId: basicWorkflows[i].shortId });
-            const executions = await executionsCursor.toArray();
-
-            // Add executions and execution count to the workflow object
-            basicWorkflows[i].executions = executions;
-            basicWorkflows[i].executionCount = executions.length;
-        }
-
-        return res.json(basicWorkflows);
+        res.json(workflows);
     } catch (error) {
-        console.error(error);
-        return res.status(500).send('Server error');
-    } finally {
-        // Ensure the client is closed when done
-        await client.close();
-    }
-});
-
-
-router.get('/workflows2', async (req, res) => {
-    try {
-        // Create a new MongoClient
-        const client = new MongoClient(url);
-        
-        // Connect to the server
-        await client.connect();
-        console.log('Connected successfully to server');
-
-        const db = client.db(dbName);
-        const workflowRepository = db.collection('workflow');
-
-        // Fetch only the workflows without aggregation
-        const workflows = await workflowRepository.find().toArray();
-
-        return res.json(workflows);
-    } catch (error) {
-        console.error(error);
+        console.error('Failed to retrieve workflows:', error);
         res.status(500).send('Server error');
+    } finally {
+        // Ensure the client is closed when the operation is complete
+        await client.close();
     }
 });
 router.post('/workflows', async (req, res) => {

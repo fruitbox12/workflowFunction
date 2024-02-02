@@ -119,13 +119,14 @@ router.get('/workflows/:shortId', async (req, res) => {
 
         // Fetch all execution data for this workflow
         const executions = await db.collection('execution').find({ workflowShortId: shortId })
-    workflow.execution = executions;
-    // @ts-ignore
-    workflow.executionCount = executions.length;
-        // Combine data into a single response object
+          const response = {
+            ...workflow,
+            executionCount,
+            executions // Contains all execution data
+        };
        
 
-        res.json(workflow);
+        res.json(response);
     } catch (error) {
         console.error('Failed to retrieve workflow and executions:', error);
         res.status(500).send('Server error');

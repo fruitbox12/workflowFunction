@@ -28,17 +28,17 @@ router.get('/workflows2', async (req, res) => {
                     from: "execution", // The collection to join
                     localField: "_id", // Field from the workflow collection
                     foreignField: "workflowId", // Field from the execution collection that references workflow
-                    as: "executions" // The array to add to the workflow documents; contains the joined execution documents
+                    as: "execution" // The array to add to the workflow documents; contains the joined execution documents
                 }
             },
             {
                 $addFields: {
-                    executionCount: { $size: "$executions" }
+                    executionCount: { $size: "$execution" }
                 }
             },
             {
                 $project: {
-                    executions: 0 // Optionally remove the executions array if you only need the count
+                    execution: 0 // Optionally remove the executions array if you only need the count
                 }
             }
         ]).toArray();

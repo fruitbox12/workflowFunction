@@ -33,7 +33,7 @@ for (let i = 0; i < workflows.length; i++) {
         // @ts-ignore
     const executions = db.collection('execution');
             // @ts-ignore
-            .find({ workflowShortId: basicWorkflows[i].shortId });
+            .find({ workflowShortId: workflows[i].shortId });
 
         // @ts-ignore
         workflows[i].execution = executions;

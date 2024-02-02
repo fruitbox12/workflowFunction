@@ -26,8 +26,8 @@ router.get('/workflows2', async (req, res) => {
             {
                 $lookup: {
                     from: "execution", // The collection to join
-                    localField: "_id", // Field from the workflow collection
-                    foreignField: "workflowId", // Field from the execution collection that references workflow
+                    localField: "shortId", // Field from the workflow collection
+                    foreignField: "workflowShortId", // Field from the execution collection that references workflow
                     as: "execution" // The array to add to the workflow documents; contains the joined execution documents
                 }
             },

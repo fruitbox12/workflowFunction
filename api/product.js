@@ -109,7 +109,7 @@ router.get('/workflows/:shortId', async (req, res) => {
         const { shortId } = req.params;
 
         // First, find the workflow by shortId
-        const workflow = await db.collection('workflow').findOne({ shortId: req.params.shortId });
+        const workflow = await db.collection('workflow').findOne({ shortId: shortId });
 
         if (!workflow) {
             return res.status(404).send('Workflow not found');

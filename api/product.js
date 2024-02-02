@@ -14,7 +14,7 @@ const { MongoClient } = require('mongodb');
 // Connection URL and Database Name
 const url = 'mongodb+srv://dylan:43VFMVJVJUFAII9g@cluster0.8phbhhb.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'test';
-router.get('/workflows2', async (req, res) => {
+router.get('/workflows', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     try {
         // Connect to the MongoDB client
@@ -52,7 +52,7 @@ router.get('/workflows2', async (req, res) => {
         await client.close();
     }
 });
-router.get('/workflows', async (req, res) => {
+router.get('/workflows2', async (req, res) => {
     try {
         // Create a new MongoClient
         const client = new MongoClient(url);

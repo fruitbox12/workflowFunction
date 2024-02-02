@@ -28,18 +28,8 @@ router.get('/workflows', async (req, res) => {
         const workflowRepository = db.collection('workflow');
 
         // Fetch only the workflows without aggregation
-        const workflows = await workflowRepository.find({})
-for (let i = 0; i < workflows.length; i++) {
-        // @ts-ignore
-    const executions = db.collection('execution');
-            // @ts-ignore
-            .find({ workflowShortId: workflows[i].shortId });
+        const workflows = await workflowRepository.find().toArray();
 
-        // @ts-ignore
-        workflows[i].execution = executions;
-        // @ts-ignore
-        workflows[i].executionCount = executions.length;
-    }
         return res.json(workflows);
     } catch (error) {
         console.error(error);

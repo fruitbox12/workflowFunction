@@ -15,53 +15,42 @@ const { MongoClient } = require('mongodb');
 const url = 'mongodb+srv://dylan:43VFMVJVJUFAII9g@cluster0.8phbhhb.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'test';
 router.get('/workflows', async (req, res) => {
+    const client = new MongoClient(url);
     try {
-        // Create a new MongoClient
-        const client = new MongoClient(url);
-        
         // Connect to the server
         await client.connect();
         console.log('Connected successfully to server');
-
         const db = client.db(dbName);
-        const workflowRepository = db.collection('workflow');
-        const executionRepository = db.collection('execution'); // Assuming the executions are stored in this collection
 
-        // Perform an aggregation to fetch workflows along with their execution count
-        const workflows = await workflowRepository.aggregate([
-            {
-                $lookup: {
-                    from: "execution", // The collection to join
-                    localField: "shortId", // Field from the workflow collection
-                    foreignField: "workflowShortId", // Field from the execution collection that matches localField
-                    as: "executions" // The array field name where the joined data will be placed
-                }
-            },
-            {
-                $addFields: {
-                    executionCount: { $size: "$executions" } // Add a new field that counts the number of executions
-                }
-            },
-            {
-                $project: {
-                    _id: 1,
-                    shortId: 1,
-                    name: 1,
-                    executionCount: 1,
-                    executions: 1 // Include this if you want to return the execution details as well
-                }
-            }
-        ]).toArray();
+        // Assuming 'workflows' is the collection for Workflow entities
+        const workflowCollection = db.collection('workflows');
+        // Assuming 'executions' is the collection for Execution entities
+        const executionCollection = db.collection('executions');
 
-        return res.json(workflows);
+        // Fetch all workflows
+        const workflowsCursor = workflowCollection.find({});
+        const basicWorkflows = await workflowsCursor.toArray();
+
+        // Iterate over each workflow to fetch related executions
+        for (let i = 0; i < basicWorkflows.length; i++) {
+            const executionsCursor = executionCollection.find({ workflowShortId: basicWorkflows[i].shortId });
+            const executions = await executionsCursor.toArray();
+
+            // Add executions and execution count to the workflow object
+            basicWorkflows[i].executions = executions;
+            basicWorkflows[i].executionCount = executions.length;
+        }
+
+        return res.json(basicWorkflows);
     } catch (error) {
         console.error(error);
-        res.status(500).send('Server error');
+        return res.status(500).send('Server error');
     } finally {
         // Ensure the client is closed when done
         await client.close();
     }
 });
+
 
 router.get('/workflows2', async (req, res) => {
     try {

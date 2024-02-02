@@ -108,33 +108,29 @@ router.get('/workflows/:shortId', async (req, res) => {
 
         const { shortId } = req.params;
 
-        // Check if the workflow exists
-        const workflowExists = await db.collection('workflow').findOne({ shortId: shortId });
-        if (!workflowExists) {
+        // First, find the workflow by shortId
+        const workflow = await db.collection('workflow').findOne({ shortId: shortId });
+        if (!workflow) {
             return res.status(404).send('Workflow not found');
         }
 
-        // Set response headers for streaming
-        res.setHeader('Content-Type', 'application/json');
-        res.write('[');
+        // Then, count the executions for this workflow
+        const executionCount = await db.collection('execution').countDocuments({ workflowShortId: shortId });
 
-        const cursor = db.collection('execution').find({ workflowShortId: shortId });
-        let first = true; // Track the first iteration to format JSON array correctly
+        // Fetch all execution data for this workflow
+        const executions = await db.collection('execution').find({ workflowShortId: shortId })
+            .toArray(); // Removed the limit and projection to fetch all data
 
-        // Use the cursor to stream data from MongoDB
-        for await (const doc of cursor) {
-            if (!first) {
-                res.write(',');
-            } else {
-                first = false;
-            }
-            res.write(JSON.stringify(doc));
-        }
+        // Combine data into a single response object
+        const response = {
+            ...workflow,
+            executionCount,
+            executions // Contains all execution data
+        };
 
-        res.write(']');
-        res.end();
+        res.json(response);
     } catch (error) {
-        console.error('Failed to stream executions:', error);
+        console.error('Failed to retrieve workflow and executions:', error);
         res.status(500).send('Server error');
     } finally {
         await client.close();

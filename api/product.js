@@ -100,8 +100,59 @@ router.post('/workflows', async (req, res) => {
       await client.close();
   }
 });
-
 router.get('/workflows/:shortId', async (req, res) => {
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+    try {
+        // Connect to the MongoDB client
+        await client.connect();
+        const db = client.db(dbName);
+
+        // Extract shortId from URL parameters
+        const { shortId } = req.params;
+
+        // Perform the aggregation with a match stage to filter by shortId
+        const workflows = await db.collection('workflow').aggregate([
+            {
+                $match: {
+                    shortId: shortId // Filter documents by shortId
+                }
+            },
+            {
+                $lookup: {
+                    from: "execution", // The collection to join
+                    localField: "shortId", // Field from the workflow collection
+                    foreignField: "workflowShortId", // Field from the execution collection that references workflow
+                    as: "execution" // The array to add to the workflow documents; contains the joined execution documents
+                }
+            },
+            {
+                $addFields: {
+                    executionCount: { $size: "$execution" }
+                }
+            },
+            {
+                $project: {
+                    execution: 0 // Optionally remove the executions array if you only need the count
+                }
+            }
+        ]).toArray();
+
+        // Check if any workflows were found
+        if (workflows.length === 0) {
+            return res.status(404).send('Workflow not found');
+        }
+
+        res.json(workflows[0]); // Assuming shortId is unique and only one workflow should match
+    } catch (error) {
+        console.error('Failed to retrieve workflows:', error);
+        res.status(500).send('Server error');
+    } finally {
+        // Ensure the client is closed when the operation is complete
+        await client.close();
+    }
+});
+
+router.get('/workflows2/:shortId', async (req, res) => {
   try {
     const client = new MongoClient(url);
     await client.connect();
@@ -125,6 +176,30 @@ router.get('/workflows/:shortId', async (req, res) => {
     workflow.executionCount = executionData.length;
 
     return res.json(workflow);
+
+
+        const workflows = await db.collection('workflow').aggregate([
+            {
+                $lookup: {
+                    from: "execution", // The collection to join
+                    localField: "shortId", // Field from the workflow collection
+                    foreignField: "workflowShortId", // Field from the execution collection that references workflow
+                    as: "execution" // The array to add to the workflow documents; contains the joined execution documents
+                }
+            },
+            {
+                $addFields: {
+                    executionCount: { $size: "$execution" }
+                }
+            },
+            {
+                $project: {
+                    execution: 0 // Optionally remove the executions array if you only need the count
+                }
+            }
+        ]).toArray();
+
+        res.json(workflows);
   } catch (error) {
     console.error(error);
     res.status(500).send('Server error');

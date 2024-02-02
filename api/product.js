@@ -38,7 +38,8 @@ router.get('/workflows', async (req, res) => {
             },
             {
                 $project: {
-                    execution: 0 // Optionally remove the executions array if you only need the count
+                    execution: 0, // Optionally remove the executions array if you only need the count
+                    deployed: 1,
                 }
             }
         ]).toArray();

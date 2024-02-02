@@ -109,18 +109,18 @@ router.get('/workflows/:shortId', async (req, res) => {
         const { shortId } = req.params;
 
         // First, find the workflow by shortId
-        const workflow = await db.collection('workflow').findOne({ shortId: shortId });
+        const workflow = await db.collection('workflow').find({});
         if (!workflow) {
             return res.status(404).send('Workflow not found');
         }
-
         // Then, count the executions for this workflow
         const executionCount = await db.collection('execution').countDocuments({ workflowShortId: shortId });
 
         // Fetch all execution data for this workflow
         const executions = await db.collection('execution').find({ workflowShortId: shortId })
-            .toArray(); // Removed the limit and projection to fetch all data
-
+    workflow.execution = executions;
+    // @ts-ignore
+    workflow.executionCount = executions.length;
         // Combine data into a single response object
         const response = {
             ...workflow,
@@ -136,6 +136,7 @@ router.get('/workflows/:shortId', async (req, res) => {
         await client.close();
     }
 });
+
 
 router.get('/workflows2/:shortId', async (req, res) => {
   try {

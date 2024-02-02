@@ -118,11 +118,11 @@ router.get('/workflows/:shortId', async (req, res) => {
         const executionCount = await db.collection('execution').countDocuments({ workflowShortId: shortId });
 
         // Fetch all execution data for this workflow
-        const executions = await db.collection('execution').find({ workflowShortId: shortId }).toArray(); // Ensure 'executions' matches your collection name
+        const execution = await db.collection('execution').find({ workflowShortId: shortId }).toArray(); // Ensure 'executions' matches your collection name
           const response = {
             ...workflow,
             executionCount,
-            executions // Contains all execution data
+            executios // Contains all execution data
         };
        
 

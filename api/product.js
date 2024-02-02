@@ -101,51 +101,33 @@ router.post('/workflows', async (req, res) => {
   }
 });
 router.get('/workflows/:shortId', async (req, res) => {
-    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
-    try {
-        await client.connect();
-        const db = client.db(dbName);
+  try {
+    const client = new MongoClient(url);
+    await client.connect();
 
-        const { shortId } = req.params;
+    const db = client.db(dbName);
+    const workflowRepository = db.collection('workflow');
 
-        // First, find the workflow by shortId
-        const workflow = await db.collection('workflow').findOne({ shortId: shortId });
-        const lastId = req.query.lastId ? ObjectId(req.query.lastId) : null;
+    // First query to get workflow
+    const workflow = await workflowRepository.findOne({ shortId: req.params.shortId });
 
-        if (!workflow) {
-            return res.status(404).send('Workflow not found');
-        }
-        // Then, count the executions for this workflow
-        const executionCount = await db.collection('execution').countDocuments({ workflowShortId: shortId });
-  let query = { workflowShortId: shortId };
-        if (lastId) {
-            query['_id'] = { $gt: lastId };
-        }
-
-        // Fetch execution data for this workflow with pagination
-        const execution = await db.collection('execution')
-                                    .find(query)
-                                    .sort({ _id: 1 }) // Ensure a consistent sort order for pagination
-                                    .limit(10) // Adjust the limit as needed
-                                    .toArray();
-
-        // Combine data into a single response object
-        const response = {
-            ...workflow,
-            executionCount,
-            execution, // Contains paginated execution data
-            nextCursor: executions.length > 0 ? executions[executions.length - 1]._id.toString() : null
-        };
-
-       
-
-        res.json(response);
-    } catch (error) {
-        console.error('Failed to retrieve workflow and executions:', error);
-        res.status(500).send('Server error');
-    } finally {
-        await client.close();
+    if (!workflow) {
+      return res.status(404).send(`Workflow ${req.params.shortId} not found`);
     }
+
+    // Second query to get execution data
+    const executionRepository = db.collection('execution');
+    const executionData = await executionRepository.find({ workflowShortId: req.params.shortId })
+
+    // Add execution data and count to the workflow object
+    workflow.execution = executionData;
+    workflow.executionCount = executionData.length;
+
+    return res.json(workflow);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server error');
+  }
 });
 
 

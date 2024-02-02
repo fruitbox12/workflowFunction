@@ -125,7 +125,7 @@ router.get('/workflows/:shortId', async (req, res) => {
         const response = {
             ...workflow,
             executionCount,
-            executions // Contains all execution data
+            execution // Contains all execution data
         };
 
         res.json(response);

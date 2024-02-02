@@ -14,7 +14,44 @@ const { MongoClient } = require('mongodb');
 // Connection URL and Database Name
 const url = 'mongodb+srv://dylan:43VFMVJVJUFAII9g@cluster0.8phbhhb.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'test';
+router.get('/workflows2', async (req, res) => {
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+    try {
+        // Connect to the MongoDB client
+        await client.connect();
+        const db = client.db(dbName);
 
+        // Perform the aggregation
+        const workflows = await db.collection('workflow').aggregate([
+            {
+                $lookup: {
+                    from: "execution", // The collection to join
+                    localField: "_id", // Field from the workflow collection
+                    foreignField: "workflowId", // Field from the execution collection that references workflow
+                    as: "executions" // The array to add to the workflow documents; contains the joined execution documents
+                }
+            },
+            {
+                $addFields: {
+                    executionCount: { $size: "$executions" }
+                }
+            },
+            {
+                $project: {
+                    executions: 0 // Optionally remove the executions array if you only need the count
+                }
+            }
+        ]).toArray();
+
+        res.json(workflows);
+    } catch (error) {
+        console.error('Failed to retrieve workflows:', error);
+        res.status(500).send('Server error');
+    } finally {
+        // Ensure the client is closed when the operation is complete
+        await client.close();
+    }
+});
 router.get('/workflows', async (req, res) => {
     try {
         // Create a new MongoClient

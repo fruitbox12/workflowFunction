@@ -101,33 +101,38 @@ router.post('/workflows', async (req, res) => {
   }
 });
 router.get('/workflows/:shortId', async (req, res) => {
-  try {
-    const client = new MongoClient(url);
-    await client.connect();
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+    try {
+        await client.connect();
+        const db = client.db(dbName);
 
-    const db = client.db(dbName);
-    const workflowRepository = db.collection('workflow');
+        const { shortId } = req.params;
 
-    // First query to get workflow
-    const workflow = await workflowRepository.findOne({ shortId: req.params.shortId });
+        // First, find the workflow by shortId
+        const workflow = await db.collection('workflow').findOne({ shortId: shortId });
 
-    if (!workflow) {
-      return res.status(404).send(`Workflow ${req.params.shortId} not found`);
+        if (!workflow) {
+            return res.status(404).send('Workflow not found');
+        }
+        // Then, count the executions for this workflow
+        const executionCount = await db.collection('execution').countDocuments({ workflowShortId: shortId });
+
+        // Fetch all execution data for this workflow
+        const execution = await db.collection('execution').find({ workflowShortId: shortId }).toArray(); // Ensure 'executions' matches your collection name
+          const response = {
+            ...workflow,
+            executionCount,
+            execution // Contains all execution data
+        };
+       
+
+        res.json(response);
+    } catch (error) {
+        console.error('Failed to retrieve workflow and executions:', error);
+        res.status(500).send('Server error');
+    } finally {
+        await client.close();
     }
-
-    // Second query to get execution data
-    const executionRepository = db.collection('execution');
-    const executionData = await executionRepository.find({ workflowShortId: req.params.shortId })
-
-    // Add execution data and count to the workflow object
-    workflow.execution = executionData;
-    workflow.executionCount = executionData.length;
-
-    return res.json(workflow);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Server error');
-  }
 });
 
 

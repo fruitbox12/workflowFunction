@@ -109,7 +109,7 @@ router.post('/workflows', async (req, res) => {
       console.log('Connected successfully to server');
 
       const db = client.db(dbName);
-      const workflowCollection = db.collection('workflow');
+        const workflowCollectionName = `workflow_${req.tenantId}`; // Adjust collection name based on tenant ID
 
       // Use the request body directly as the workflow document
       const workflowData = req.body;

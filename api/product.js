@@ -25,7 +25,7 @@ function extractTenantId(req, res, next) {
 }
 
 router.use(extractTenantId); 
-router.get('/workflow', async (req, res) => {
+router.get('/workflows', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     try {
         await client.connect();
@@ -40,17 +40,17 @@ router.get('/workflow', async (req, res) => {
                     from: executionCollectionName, // Use tenant-specific collection
                     localField: "shortId",
                     foreignField: "workflowShortId",
-                    as: executionCollectionName
+                    as: execution
                 }
             },
           {
                 $addFields: {
-                    executionCount: { $size: "$executionCollectionName" }
+                    executionCount: { $size: "$execution" }
                 }
             },
             {
                 $project: {
-                    executionCollectionName: 0 // Optionally remove the executions array if you only need the count
+                    execution: 0 // Optionally remove the executions array if you only need the count
                 }
             }
         ]).toArray();

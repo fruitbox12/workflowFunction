@@ -43,7 +43,16 @@ router.get('/workflow', async (req, res) => {
                     as: "execution"
                 }
             },
-            // Rest of the aggregation pipeline remains the same
+          {
+                $addFields: {
+                    executionCount: { $size: "$execution" }
+                }
+            },
+            {
+                $project: {
+                    execution: 0 // Optionally remove the executions array if you only need the count
+                }
+            }
         ]).toArray();
 
         res.json(workflows);

@@ -25,7 +25,7 @@ function extractTenantId(req, res, next) {
 }
 
 router.use(extractTenantId); 
-router.get('/workflows', async (req, res) => {
+router.get('/workflow', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     try {
         await client.connect();
@@ -64,7 +64,7 @@ router.get('/workflows', async (req, res) => {
     }
 });
 
-router.get('/workflow', async (req, res) => {
+router.get('/workflows', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     try {
         // Connect to the MongoDB client

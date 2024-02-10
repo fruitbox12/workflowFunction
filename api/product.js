@@ -40,17 +40,17 @@ router.get('/workflow', async (req, res) => {
                     from: executionCollectionName, // Use tenant-specific collection
                     localField: "shortId",
                     foreignField: "workflowShortId",
-                    as: "execution"
+                    as: executionCollectionName
                 }
             },
           {
                 $addFields: {
-                    executionCount: { $size: "$execution" }
+                    executionCount: { $size: "$executionCollectionName" }
                 }
             },
             {
                 $project: {
-                    execution: 0 // Optionally remove the executions array if you only need the count
+                    executionCollectionName: 0 // Optionally remove the executions array if you only need the count
                 }
             }
         ]).toArray();

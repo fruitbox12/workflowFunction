@@ -14,6 +14,47 @@ const { MongoClient } = require('mongodb');
 // Connection URL and Database Name
 const url = 'mongodb+srv://dylan:43VFMVJVJUFAII9g@cluster0.8phbhhb.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'test';
+
+function extractTenantId(req, res, next) {
+    const tenantId = req.headers['x-tenant-id'];
+    if (!tenantId) {
+        return res.status(400).send('Tenant ID header (X-Tenant-ID) is missing');
+    }
+    req.tenantId = tenantId; // Attach tenantId to the request
+    next();
+}
+
+router.use(extractTenantId); 
+router.get('/workflow', async (req, res) => {
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+    try {
+        await client.connect();
+        const db = client.db(dbName);
+
+        const workflowCollectionName = `workflow_${req.tenantId}`; // Adjust collection name based on tenant ID
+        const executionCollectionName = `execution_${req.tenantId}`; // Adjust collection name based on tenant ID
+
+        const workflows = await db.collection(workflowCollectionName).aggregate([
+            {
+                $lookup: {
+                    from: executionCollectionName, // Use tenant-specific collection
+                    localField: "shortId",
+                    foreignField: "workflowShortId",
+                    as: "execution"
+                }
+            },
+            // Rest of the aggregation pipeline remains the same
+        ]).toArray();
+
+        res.json(workflows);
+    } catch (error) {
+        console.error('Failed to retrieve workflows:', error);
+        res.status(500).send('Server error');
+    } finally {
+        await client.close();
+    }
+});
+
 router.get('/workflows', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     try {

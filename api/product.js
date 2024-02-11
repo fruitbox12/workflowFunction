@@ -104,31 +104,33 @@ router.get('/workflow', async (req, res) => {
 });
 router.post('/workflows', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
-  try {
-      await client.connect();
-      console.log('Connected successfully to server');
+    try {
+        await client.connect();
+        console.log('Connected successfully to server');
 
-      const db = client.db(dbName);
-        const workflowCollectionName = `workflow_${req.tenantId}`; // Adjust collection name based on tenant ID
+        const db = client.db(dbName);
+        const workflowCollection = db.collection(`workflow_${req.tenantId}`); // Get the collection reference
 
-      // Use the request body directly as the workflow document
-      const workflowData = req.body;
+        // Use the request body directly as the workflow document
+        const workflowData = req.body;
 
-      // Insert the new workflow
-      const insertResult = await workflowCollectionName.insertOne(workflowData);
-      const createdWorkflowId = insertResult.insertedId;
+        // Insert the new workflow
+        const insertResult = await workflowCollection.insertOne(workflowData);
+        const createdWorkflowId = insertResult.insertedId;
 
-      // Perform aggregation to include execution count and other required data
-      
-          return res.json();
+        // Optionally, perform any additional operations like aggregation here
 
-  } catch (error) {
-      console.error(error);
-      res.status(500).send('Server error');
-  } finally {
-      await client.close();
-  }
+        // Send back the ID of the created workflow or the whole workflow object as needed
+        return res.json({ success: true, createdWorkflowId });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    } finally {
+        await client.close();
+    }
 });
+
 router.get('/workflows/:shortId', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     try {

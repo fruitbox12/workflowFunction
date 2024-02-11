@@ -31,6 +31,13 @@ function generateRandomSequence(length) {
     }
     return result;
 }
+function generateShortIds() {
+    const prefix = "W";
+    const dateComponent = formatDateComponent(new Date());
+    const randomSequence = generateRandomSequence(8); // Length of the sequence
+    const shortId = `${prefix}${dateComponent}-${randomSequence}`;
+    return shortId.toUpperCase(); // Ensure the ID is in all caps
+}
 
 // Connection URL and Database Name
 const url = 'mongodb+srv://dylan:43VFMVJVJUFAII9g@cluster0.8phbhhb.mongodb.net/?retryWrites=true&w=majority';
@@ -136,7 +143,7 @@ router.post('/workflows', async (req, res) => {
         const workflowData = req.body;
 
         // Generate shortId - Implement this function based on your ID generation logic
-        const shortId = generateShortId('W'); // Assuming you have this function
+        const shortId = generateShortIds(); // Assuming you have this function
 
         // Get the current date in ISO format
         const currentDate = new Date().toISOString();

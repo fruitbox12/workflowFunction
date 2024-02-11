@@ -121,9 +121,7 @@ router.post('/workflows', async (req, res) => {
       // Perform aggregation to include execution count and other required data
       
           return res.json();
-      } else {
-          return res.status(404).send(`Workflow not found`);
-      }
+
   } catch (error) {
       console.error(error);
       res.status(500).send('Server error');

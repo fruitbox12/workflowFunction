@@ -119,27 +119,8 @@ router.post('/workflows', async (req, res) => {
       const createdWorkflowId = insertResult.insertedId;
 
       // Perform aggregation to include execution count and other required data
-      const returnWorkflows = await workflowCollection.aggregate([
-          { $match: { _id: createdWorkflowId } },
-          {
-              $lookup: {
-                  from: 'execution',
-                  localField: 'shortId',
-                  foreignField: 'workflowShortId',
-                  as: 'execution'
-              }
-          },
-          {
-              $addFields: {
-                  executionCount: {
-                      $size: '$execution'
-                  }
-              }
-          }
-      ]).toArray();
-
-      if (returnWorkflows.length) {
-          return res.json(returnWorkflows[0]);
+      
+          return res.json();
       } else {
           return res.status(404).send(`Workflow not found`);
       }

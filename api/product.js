@@ -103,7 +103,7 @@ router.get('/workflow', async (req, res) => {
     }
 });
 router.post('/workflows', async (req, res) => {
-  const client = new MongoClient(url);
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
   try {
       await client.connect();
       console.log('Connected successfully to server');

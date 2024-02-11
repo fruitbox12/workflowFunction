@@ -10,14 +10,7 @@ const axios = require("axios");
  */
 
 const { MongoClient } = require('mongodb');
-function generateShortId() {
-    const prefix = "W";
-    const date = new Date();
-    const dateComponent = formatDateComponent(date);
-    const randomSequence = generateRandomSequence(8); // Length of the sequence
 
-    return `${prefix}${dateComponent}-${randomSequence}`;
-}
 
 function formatDateComponent(date) {
     const day = date.getDate().toString().padStart(2, '0');
@@ -35,7 +28,14 @@ function generateRandomSequence(length) {
     }
     return result;
 }
+function generateShortId() {
+    const prefix = "W";
+    const date = new Date();
+    const dateComponent = formatDateComponent(date);
+    const randomSequence = generateRandomSequence(8); // Length of the sequence
 
+    return `${prefix}${dateComponent}-${randomSequence}`;
+}
 // Connection URL and Database Name
 const url = 'mongodb+srv://dylan:43VFMVJVJUFAII9g@cluster0.8phbhhb.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'test';

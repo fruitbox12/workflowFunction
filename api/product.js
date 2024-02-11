@@ -11,7 +11,10 @@ const axios = require("axios");
 
 const { MongoClient } = require('mongodb');
 
-
+// Define a function to generate a short ID (mimicking your 'shortId' utility function)
+function generateShortId(prefix) {
+  return `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
+}
 function formatDateComponent(date) {
     const day = date.getDate().toString().padStart(2, '0');
     const month = date.toLocaleString('default', { month: 'short' }).toUpperCase();
@@ -28,14 +31,7 @@ function generateRandomSequence(length) {
     }
     return result;
 }
-function generateShortId() {
-    const prefix = "W";
-    const date = new Date();
-    const dateComponent = formatDateComponent(date);
-    const randomSequence = generateRandomSequence(8); // Length of the sequence
 
-    return `${prefix}${dateComponent}-${randomSequence}`;
-}
 // Connection URL and Database Name
 const url = 'mongodb+srv://dylan:43VFMVJVJUFAII9g@cluster0.8phbhhb.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'test';
@@ -140,7 +136,7 @@ router.post('/workflows', async (req, res) => {
         const workflowData = req.body;
 
         // Generate shortId - Implement this function based on your ID generation logic
-        const shortId = generateShortId(); // Assuming you have this function
+        const shortId = generateShortId(W); // Assuming you have this function
 
         // Get the current date in ISO format
         const currentDate = new Date().toISOString();
@@ -292,10 +288,7 @@ function resolveNodeDependencies(nodes, edges) {
 }
 
 // Main route to execute the workflow
-// Define a function to generate a short ID (mimicking your 'shortId' utility function)
-function generateShortId(prefix) {
-  return `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
-}
+
 
 // Main route to execute the workflow
 router.post('/execute/workflow', async (req, res) => {

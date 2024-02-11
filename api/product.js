@@ -10,6 +10,31 @@ const axios = require("axios");
  */
 
 const { MongoClient } = require('mongodb');
+function generateShortId() {
+    const prefix = "W";
+    const date = new Date();
+    const dateComponent = formatDateComponent(date);
+    const randomSequence = generateRandomSequence(8); // Length of the sequence
+
+    return `${prefix}${dateComponent}-${randomSequence}`;
+}
+
+function formatDateComponent(date) {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = date.toLocaleString('default', { month: 'short' }).toUpperCase();
+    const year = date.getFullYear().toString().slice(-2); // Get last two digits of the year
+    return `${day}${month}${year}`;
+}
+
+function generateRandomSequence(length) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        result += characters.charAt(randomIndex);
+    }
+    return result;
+}
 
 // Connection URL and Database Name
 const url = 'mongodb+srv://dylan:43VFMVJVJUFAII9g@cluster0.8phbhhb.mongodb.net/?retryWrites=true&w=majority';
@@ -114,6 +139,19 @@ router.post('/workflows', async (req, res) => {
         // Use the request body directly as the workflow document
         const workflowData = req.body;
 
+        // Generate shortId - Implement this function based on your ID generation logic
+        const shortId = generateShortId(); // Assuming you have this function
+
+        // Get the current date in ISO format
+        const currentDate = new Date().toISOString();
+
+        // Add shortId, createdDate, and updatedDate to the workflow document
+        Object.assign(workflowData, {
+            shortId: shortId,
+            createdDate: currentDate,
+            updatedDate: currentDate // Initially the same as createdDate
+        });
+
         // Insert the new workflow
         const insertResult = await workflowCollection.insertOne(workflowData);
         const createdWorkflowId = insertResult.insertedId;
@@ -130,6 +168,7 @@ router.post('/workflows', async (req, res) => {
         await client.close();
     }
 });
+
 
 router.get('/workflows/:shortId', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });

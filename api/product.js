@@ -181,17 +181,20 @@ router.get('/workflows/:shortId', async (req, res) => {
 
         const { shortId } = req.params;
 
+        const workflowCollectionName = `workflow_${req.tenantId}`; // Adjust collection name based on tenant ID
+        const executionCollectionName = `execution_${req.tenantId}`; // Adjust collection name based on tenant ID
+
         // First, find the workflow by shortId
-        const workflow = await  db.collection(`workflow_${req.tenantId}`).findOne({ shortId: shortId });
+        const workflow = await  db.collection(workflowCollectionName).findOne({ shortId: shortId });
 
         if (!workflow) {
             return res.status(404).send('Workflow not found');
         }
         // Then, count the executions for this workflow
-        const executionCount = await db.collection('execution_${req.tenantId}').countDocuments({ workflowShortId: shortId });
+        const executionCount = await db.collection(executionCollectionName).countDocuments({ workflowShortId: shortId });
 
         // Fetch all execution data for this workflow
-        const execution = await db.collection('execution_${req.tenantId}').find({ workflowShortId: shortId }).toArray(); // Ensure 'executions' matches your collection name
+        const execution = await db.collection(executionCollectionName).find({ workflowShortId: shortId }).toArray(); // Ensure 'executions' matches your collection name
           const response = {
             ...workflow,
             executionCount,

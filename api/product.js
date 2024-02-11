@@ -136,7 +136,7 @@ router.post('/workflows', async (req, res) => {
         const workflowData = req.body;
 
         // Generate shortId - Implement this function based on your ID generation logic
-        const shortId = generateShortId(W); // Assuming you have this function
+        const shortId = generateShortId('W'); // Assuming you have this function
 
         // Get the current date in ISO format
         const currentDate = new Date().toISOString();

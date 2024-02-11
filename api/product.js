@@ -115,7 +115,7 @@ router.post('/workflows', async (req, res) => {
       const workflowData = req.body;
 
       // Insert the new workflow
-      const insertResult = await workflowCollection.insertOne(workflowData);
+      const insertResult = await workflowCollectionName.insertOne(workflowData);
       const createdWorkflowId = insertResult.insertedId;
 
       // Perform aggregation to include execution count and other required data

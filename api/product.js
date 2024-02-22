@@ -162,7 +162,11 @@ router.post('/workflows', async (req, res) => {
         // Optionally, perform any additional operations like aggregation here
 
         // Send back the ID of the created workflow or the whole workflow object as needed
-        return res.json({ success: true, createdWorkflowId });
+        return axios.get(`https://workflow-function.vercel.app/api/v1/workflows/${workflowData.shortId}`, {
+        headers: {
+            'X-Tenant-ID': req.tenantId
+        }
+    })
 
     } catch (error) {
         console.error(error);

@@ -130,6 +130,72 @@ router.get('/workflow', async (req, res) => {
         await client.close();
     }
 });
+const { MongoClient } = require('mongodb');
+const axios = require('axios');
+const express = require('express');
+const router = express.Router();
+
+// Assuming `url`, `dbName` are defined elsewhere in your code
+
+router.put('/workflows/:shortId', async (req, res) => {
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+    try {
+        await client.connect();
+        console.log('Connected successfully to server');
+
+        const db = client.db(dbName);
+        const workflowCollection = db.collection(`workflow_${req.tenantId}`);
+
+        // Extract the shortId from the request parameters
+        const { shortId } = req.params;
+
+        // Use the request body for the update
+        const updateData = req.body;
+
+        // Get the current date in ISO format for the updatedDate
+        const updatedDate = new Date().toISOString();
+
+        // Prepare the update document
+        const updateDocument = {
+            $set: {
+                ...updateData,
+                updatedDate: updatedDate // Update the updatedDate field
+            }
+        };
+
+        // Update the workflow
+        const updateResult = await workflowCollection.updateOne({ shortId: shortId }, updateDocument);
+
+        if (updateResult.matchedCount === 0) {
+            return res.status(404).json({ message: 'Workflow not found' });
+        }
+
+        // Optionally, fetch updated data from an external API
+        try {
+            const response = await axios.get(`https://workflow-function.vercel.app/api/v1/workflows/${shortId}`, {
+                headers: {
+                    'X-Tenant-ID': req.tenantId
+                }
+            });
+            // If you want to send back the axios response data
+            return res.status(200).json(response.data);
+        } catch (axiosError) {
+            console.error(axiosError);
+            // Handle axios error differently or send a custom response
+            return res.status(500).json({ message: 'Error fetching updated workflow data.' });
+        }
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send('Server error');
+    } finally {
+        await client.close();
+    }
+});
+
+module.exports = router;
+
+
 router.post('/workflows', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     try {

@@ -370,7 +370,7 @@ function resolveNodeDependencies(nodes, edges) {
 
 // Main route to execute the workflow
 
-router.post('workflows/deploy/:shortId', async (req, res) => {
+router.post('/workflows/deploy/:shortId', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     try {
         await client.connect();

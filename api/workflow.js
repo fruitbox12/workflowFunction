@@ -236,16 +236,18 @@ router.post('/webhook/:shortId', async (req, res) => {
         // Fetch the workflow by its shortId
 const workflow = await workflowCollection.findOne(
   { shortId: req.params.shortId },
-  { projection: { flowData: 1 } }
+  { projection: { _id: 0, flowData: 1 } }
 );
-        
-        if (!workflow || !workflow.flowData || !workflow.flowData.nodes) {
-            return res.status(404).send('Workflow not found or workflow data is incomplete');
-        }
-        
-        // Calculate the length of the flowData.nodes array
-        const stepEndValue = workflow.flowData.nodes.length;
-        
+
+// Check if the workflow exists and has the required flowData structure
+if (!workflow || !workflow.flowData || !Array.isArray(workflow.flowData.nodes) || workflow.flowData.nodes.length === 0) {
+    return res.status(404).send('Workflow not found or workflow data is incomplete');
+}
+
+// Given the above check includes Array.isArray, we are guaranteed that flowData.nodes exists and is an array
+// Calculate the length of the flowData.nodes array
+const stepEndValue = workflow.flowData.nodes.length;
+
         // Construct the webhook URL with the dynamic stepEnd query parameter
         const webhookUrl = `https://deployworkflow.vercel.app/api/step/1?stepEnd=${stepEndValue}`;
         

@@ -270,10 +270,12 @@ const stepEndValue = flowDataObj.nodes.length;
 
         // Execute the webhook using axios
     axios.post(webhookUrl, bodyData).then(webhookResponse) {
-                                                 console.log(   webhookResponse.data)  }
+ console.log(webhookResponse.data)
+        res.json({ message: 'Webhook executed successfully', webhookResponse: webhookResponse.data });
+
+    }
         
         // Respond with success and the data received from the webhook
-        res.json({ message: 'Webhook executed successfully', webhookResponse: webhookResponse.data });
     } catch (error) {
         console.error('Failed to execute webhook:', error);
         res.status(500).send('Server error');

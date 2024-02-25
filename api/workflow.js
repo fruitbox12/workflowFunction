@@ -239,14 +239,26 @@ const workflow = await workflowCollection.findOne(
   { projection: { _id: 0, flowData: 1 } }
 );
 
-// Check if the workflow exists and has the required flowData structure
-if (!workflow || !workflow.flowData || !Array.isArray(workflow.flowData.nodes) || workflow.flowData.nodes.length === 0) {
+// Check if the workflow and flowData exist
+if (!workflow || !workflow.flowData) {
     return res.status(404).send('Workflow not found or workflow data is incomplete');
 }
 
-// Given the above check includes Array.isArray, we are guaranteed that flowData.nodes exists and is an array
+// Parse the flowData JSON string to an object
+let flowDataObj;
+try {
+    flowDataObj = JSON.parse(workflow.flowData);
+} catch (error) {
+    return res.status(500).send('Failed to parse workflow data');
+}
+
+// Check if flowDataObj.nodes is an array and not empty
+if (!Array.isArray(flowDataObj.nodes) || flowDataObj.nodes.length === 0) {
+    return res.status(404).send('Workflow data is incomplete');
+}
+
 // Calculate the length of the flowData.nodes array
-const stepEndValue = workflow.flowData.nodes.length;
+const stepEndValue = flowDataObj.nodes.length;
 
         // Construct the webhook URL with the dynamic stepEnd query parameter
         const webhookUrl = `https://deployworkflow.vercel.app/api/step/1?stepEnd=${stepEndValue}`;

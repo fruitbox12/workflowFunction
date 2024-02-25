@@ -226,7 +226,6 @@ router.put('/workflows/:shortId', async (req, res) => {
 });
 
 router.post('/webhook/:shortId', async (req, res) => {
-    const { shortId } = req.params;
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     
     try {
@@ -235,7 +234,7 @@ router.post('/webhook/:shortId', async (req, res) => {
         const workflowCollection = db.collection(`workflow_dylanwong007@gmail.com`);
         
         // Fetch the workflow by its shortId
-        const workflow = await workflowCollection.findOne({ shortId: shortId });
+        const workflow = await workflowCollection.findOne({ shortId: req.params.shortId });
         
         if (!workflow || !workflow.flowData || !workflow.flowData.nodes) {
             return res.status(404).send('Workflow not found or workflow data is incomplete');

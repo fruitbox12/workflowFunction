@@ -225,6 +225,46 @@ router.put('/workflows/:shortId', async (req, res) => {
     }
 });
 
+router.post('/webhook/:shortId', async (req, res) => {
+    const { shortId } = req.params;
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+    
+    try {
+        await client.connect();
+        const db = client.db(dbName);
+        const workflowCollection = db.collection(`workflow_${req.tenantId}`);
+        
+        // Fetch the workflow by its shortId
+        const workflow = await workflowCollection.findOne({ shortId: shortId });
+        
+        if (!workflow || !workflow.flowData || !workflow.flowData.nodes) {
+            return res.status(404).send('Workflow not found or workflow data is incomplete');
+        }
+        
+        // Calculate the length of the flowData.nodes array
+        const stepEndValue = workflow.flowData.nodes.length;
+        
+        // Construct the webhook URL with the dynamic stepEnd query parameter
+        const webhookUrl = `https://deployworkflow.vercel.app/api/step/1?stepEnd=${stepEndValue}`;
+        
+        // Prepare the body data for the webhook
+        // This is just an example, adjust according to your actual data structure and needs
+        const bodyData = {
+            flowData: workflow.flowData // Assuming you want to send the entire flowData object
+        };
+        
+        // Execute the webhook using axios
+        const webhookResponse = await axios.post(webhookUrl, bodyData);
+        
+        // Respond with success and the data received from the webhook
+        res.json({ message: 'Webhook executed successfully', webhookResponse: webhookResponse.data });
+    } catch (error) {
+        console.error('Failed to execute webhook:', error);
+        res.status(500).send('Server error');
+    } finally {
+        await client.close();
+    }
+});
 
 
 router.post('/workflows', async (req, res) => {

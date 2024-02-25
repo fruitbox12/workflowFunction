@@ -131,7 +131,42 @@ router.get('/workflow', async (req, res) => {
     }
 });
 
+router.post('/workflows/deploy/:shortId', async (req, res) => {
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+    try {
+        await client.connect();
+        const db = client.db(dbName);
+        const workflowCollection = db.collection(`workflow_${req.tenantId}`);
 
+        // Fetch the workflow with its shortId
+        const workflow = await workflowCollection.findOne({ shortId: req.params.shortId });
+
+        if (!workflow) {
+            res.status(404).send(`Workflow ${req.params.shortId} not found`);
+            return;
+        }
+
+        // Determine the deployment status based on the halt property in the request body
+        const isDeploying = !req.body.halt;
+
+        // Update the workflow's deployed field in the database
+        await workflowCollection.updateOne(
+            { shortId: req.params.shortId },
+            { $set: { deployed: isDeploying } }
+        );
+
+        // Here, you would include any additional logic for deploying or halting the workflow
+        // This might involve interacting with other systems or services to start or stop the workflow execution
+
+        // Send a response indicating the operation's success
+        res.json({ message: `Workflow ${req.params.shortId} has been ${isDeploying ? 'deployed' : 'halted'}.` });
+    } catch (e) {
+        console.error(e);
+        res.status(500).send(`Workflow ${req.params.shortId} deploy error: ${e.message}`);
+    } finally {
+        await client.close();
+    }
+});
 // Assuming `url`, `dbName` are defined elsewhere in your code
 
 router.put('/workflows/:shortId', async (req, res) => {
@@ -190,7 +225,6 @@ router.put('/workflows/:shortId', async (req, res) => {
     }
 });
 
-module.exports = router;
 
 
 router.post('/workflows', async (req, res) => {

@@ -232,7 +232,7 @@ router.post('/webhook/:shortId', async (req, res) => {
     try {
         await client.connect();
         const db = client.db(dbName);
-        const workflowCollection = db.collection(`workflow_${req.tenantId}`);
+        const workflowCollection = db.collection(`workflow_dylanwong007@gmail.com`);
         
         // Fetch the workflow by its shortId
         const workflow = await workflowCollection.findOne({ shortId: shortId });
@@ -252,7 +252,11 @@ router.post('/webhook/:shortId', async (req, res) => {
         const bodyData = {
             flowData: workflow.flowData // Assuming you want to send the entire flowData object
         };
-        
+         curl -L -X POST "https://workflow-function.vercel.app/" \
+     -H "X-Tenant-ID: dylanwong007#gmail.com" \
+     -d '{"workflowShortId": "W25FEB24-X0U81SRR"}'
+
+
         // Execute the webhook using axios
         const webhookResponse = await axios.post(webhookUrl, bodyData);
         

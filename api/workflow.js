@@ -235,10 +235,9 @@ router.post('/webhook/:shortId', async (req, res) => {
         
         // Fetch the workflow by its shortId
 const workflow = await workflowCollection.findOne(
-  { shortId: req.params.shortId },
-  { projection: { _id: 0, flowData: 1 } }
+  { shortId: req.params.shortId }
 );
-
+console.log(workflow)
 // Check if the workflow and flowData exist
 if (!workflow || !workflow.flowData) {
     return res.status(404).send('Workflow not found or workflow data is incomplete');
@@ -265,7 +264,7 @@ const stepEndValue = flowDataObj.nodes.length;
         
         // Prepare the body data for the webhook
         // This is just an example, adjust according to your actual data structure and needs
-        const bodyData = JSON.parse(workflow); // Assuming you want to send the entire flowData object
+        const bodyData = JSON.parse(workflow.flowData); // Assuming you want to send the entire flowData object
        
 
         // Execute the webhook using axios

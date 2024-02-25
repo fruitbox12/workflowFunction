@@ -234,7 +234,10 @@ router.post('/webhook/:shortId', async (req, res) => {
         const workflowCollection = db.collection(`workflow_dylanwong007@gmail.com`);
         
         // Fetch the workflow by its shortId
-        const workflow = await workflowCollection.findOne({ shortId: req.params.shortId });
+const workflow = await workflowCollection.findOne(
+  { shortId: req.params.shortId },
+  { projection: { flowData: 1 } }
+);
         
         if (!workflow || !workflow.flowData || !workflow.flowData.nodes) {
             return res.status(404).send('Workflow not found or workflow data is incomplete');

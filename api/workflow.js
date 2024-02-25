@@ -265,11 +265,11 @@ const stepEndValue = flowDataObj.nodes.length;
         
         // Prepare the body data for the webhook
         // This is just an example, adjust according to your actual data structure and needs
-        const bodyData = JSON.parse(workflow.flowData); // Assuming you want to send the entire flowData object
+        const bodyData = JSON.parse(workflow); // Assuming you want to send the entire flowData object
        
 
         // Execute the webhook using axios
-    axios.post(webhookUrl, bodyData) .then(webhookResponse => {
+    axios.post(webhookUrl, bodyData.flowData) .then(webhookResponse => {
     // Log the response data from the webhook
 
     // Respond with success and the data received from the webhook

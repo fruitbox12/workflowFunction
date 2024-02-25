@@ -272,7 +272,7 @@ const stepEndValue = flowDataObj.nodes.length;
     // Log the response data from the webhook
 
     // Respond with success and the data received from the webhook
-    res.json({ message: 'Webhook executed successfully', data: webhookResponse });
+    res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
   })
         
         // Respond with success and the data received from the webhook

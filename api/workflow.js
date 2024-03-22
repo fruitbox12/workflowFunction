@@ -234,11 +234,11 @@ router.post('/webhook/:shortId', async (req, res) => {
             'X-Tenant-ID': req.tenantId
         }
     })
-const flowDataObj = response.data.flowData; // This accesses the flowData from the response
+const flowDataObj = response.data.nodes; // This accesses the flowData from the response
 
 
 // Calculate the length of the flowData.nodes array
-const stepEndValue = flowDataObj.data.nodes.length;
+const stepEndValue = response.data.nodes.length;
 
         // Construct the webhook URL with the dynamic stepEnd query parameter
         const webhookUrl = `https://aws-steps-functions-on-vercel-mauve.vercel.app/api/step/0?stepEnd=${stepEndValue}`;

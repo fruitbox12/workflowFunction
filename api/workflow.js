@@ -285,14 +285,6 @@ const stepEndValue = 1
     }
 });
   
-  // Respond with success and the data received from the webhook
-} catch (error) {
-  console.error('Failed to execute webhook:', error);
-  res.status(500).send('Server error');
-} finally {
-  await client.close();
-}
-});
 
 router.post('/workflows', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });

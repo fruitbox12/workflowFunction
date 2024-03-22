@@ -229,36 +229,16 @@ router.post('/webhook/:shortId', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     
     try {
-        await client.connect();
-        const db = client.db(dbName);
+  const response = await axios.get(`https://workflow-function.vercel.app/api/v1/workflows/${shortId}`, {
+        headers: {
+            'X-Tenant-ID': req.tenantId
+        }
+    })
+const flowDataObj = response.data.flowData; // This accesses the flowData from the response
 
-        const workflowCollection = db.collection(`workflow_${req.tenantId}`);
-        
-        // Fetch the workflow by its shortId
-const workflow = await workflowCollection.findOne(
-  { shortId: req.params.shortId }
-);
-console.log(workflow)
-// Check if the workflow and flowData exist
-if (!workflow || !workflow.flowData) {
-    return res.status(404).send('Workflow not found or workflow data is incomplete');
-}
-
-// Parse the flowData JSON string to an object
-let flowDataObj;
-try {
-    flowDataObj = JSON.parse(workflow.flowData);
-} catch (error) {
-    return res.status(500).send('Failed to parse workflow data');
-}
-
-// Check if flowDataObj.nodes is an array and not empty
-if (!Array.isArray(flowDataObj.nodes) || flowDataObj.nodes.length === 0) {
-    return res.status(404).send('Workflow data is incomplete');
-}
 
 // Calculate the length of the flowData.nodes array
-const stepEndValue = flowDataObj.nodes.length;
+const stepEndValue = flowDataObj.data.nodes.length;
 
         // Construct the webhook URL with the dynamic stepEnd query parameter
         const webhookUrl = `https://aws-steps-functions-on-vercel-mauve.vercel.app/api/step/0?stepEnd=${stepEndValue}`;
@@ -270,13 +250,18 @@ const stepEndValue = flowDataObj.nodes.length;
        
 
         // Execute the webhook using axios
-    axios.post(webhookUrl, flowDataObj,         headers: { 'Content-Type': 'application/json' }
-).then(webhookResponse => {
+   return axios.post(webhookUrl, flowDataObj, {
+    headers: { 'Content-Type': 'application/json' }
+}).then(webhookResponse => {
     // Log the response data from the webhook
 
     // Respond with success and the data received from the webhook
     res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
-  })
+}).catch(error => {
+    // Handle error
+    console.error('Error in sending webhook:', error.response ? error.response.data : error.message);
+    res.status(500).send('Failed to execute webhook');
+});
         
         // Respond with success and the data received from the webhook
     } catch (error) {

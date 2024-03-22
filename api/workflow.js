@@ -226,10 +226,12 @@ router.put('/workflows/:shortId', async (req, res) => {
 });
 
 router.post('/webhook/:shortId', async (req, res) => {
+          const { shortId } = req.params;
+
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     
     try {
-  const response = await axios.get(`https://workflow-function.vercel.app/api/v1/workflows/${req.params.shortId}`, {
+  const response = await axios.get(`https://workflow-function.vercel.app/api/v1/workflows/${shortId}`, {
         headers: {
             'X-Tenant-ID': req.tenantId
         }

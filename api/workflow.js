@@ -11,6 +11,16 @@ const axios = require("axios");
 
 const { MongoClient } = require('mongodb');
 
+const KV_STORAGE_BASE_URL = "https://renewing-heron-48789.kv.vercel-storage.com";
+const AUTH_HEADER = { Authorization: `Bearer Ab6VASQgZmYxOTk0ZjUtN2JlNS00MDJjLThkN2ItZjg1ZmE5ZGNhZTUwNDJhMzU2MjQyMjExNDJkNmJmYWFjYjNmYmU4NDlkY2U=` };
+
+async function setWorkflowState(key, state) {
+  try {
+    await axios.post(`${KV_STORAGE_BASE_URL}/set/${key}`, JSON.stringify(state), { headers: AUTH_HEADER });
+  } catch (error) {
+    console.error('Error setting workflow state:', error);
+  }
+}
 // Define a function to generate a short ID (mimicking your 'shortId' utility function)
 function generateShortId(prefix) {
   return `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
@@ -257,6 +267,7 @@ const stepEndValue = 1
     headers: { 'Content-Type': 'application/json' }
 }).then(webhookResponse => {
     // Log the response data from the webhook
+  await setWorkflowState('webhook_test'_shortId, webhookResponse.data);
 
     // Respond with success and the data received from the webhook
     res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });

@@ -224,68 +224,49 @@ router.put('/workflows/:shortId', async (req, res) => {
         await client.close();
     }
 });
-
 router.post('/webhook/:shortId', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
-    
     try {
         await client.connect();
         const db = client.db(dbName);
-        const workflowCollection = db.collection(`workflow_` + req.tenantId);
+        const workflowCollection = db.collection(`workflow_${req.params.tenantId}`); // Changed to params as 'tenantId' is not part of req directly
         
-        // Fetch the workflow by its shortId
-const workflow = await workflowCollection.findOne(
-  { shortId: req.params.shortId }
-);
-console.log(workflow)
-// Check if the workflow and flowData exist
-if (!workflow || !workflow.flowData) {
-    return res.status(404).send('Workflow not found or workflow data is incomplete');
-}
-
-// Parse the flowData JSON string to an object
-let flowDataObj;
-try {
-    flowDataObj = JSON.parse(workflow.flowData);
-} catch (error) {
-    return res.status(500).send('Failed to parse workflow data');
-}
-
-// Check if flowDataObj.nodes is an array and not empty
-if (!Array.isArray(flowDataObj.nodes) || flowDataObj.nodes.length === 0) {
-    return res.status(404).send('Workflow data is incomplete');
-  console.log('Workflow data is incomplete')
-}
-
-// Calculate the length of the flowData.nodes array
-const stepEndValue = flowDataObj.nodes.length;
-
-        // Construct the webhook URL with the dynamic stepEnd query parameter
-        const webhookUrl = `https://workflow-function.vercel.app/api/step/0?stepEnd=${stepEndValue}`;
+        const workflow = await workflowCollection.findOne({ shortId: req.params.shortId });
+        if (!workflow || !workflow.flowData) {
+            return res.status(404).send('Workflow not found or workflow data is incomplete');
+        }
         
-        // Prepare the body data for the webhook
-        // This is just an example, adjust according to your actual data structure and needs
-        const bodyData = JSON.stringify(flowDataObj)
-       
+        let flowDataObj;
+        try {
+            flowDataObj = JSON.parse(workflow.flowData);
+        } catch (error) {
+            return res.status(500).send('Failed to parse workflow data');
+        }
 
-        // Execute the webhook using axios
-    axios.post(webhookUrl, bodyData).then(webhookResponse => {
-    // Log the response data from the webhook
+        if (!Array.isArray(flowDataObj.nodes) || flowDataObj.nodes.length === 0) {
+            return res.status(404).send('Workflow data is incomplete');
+        }
 
-    // Respond with success and the data received from the webhook
-    res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
-  })
-        
-        // Respond with success and the data received from the webhook
+        const stepEndValue = flowDataObj.nodes.length;
+        const webhookUrl = `https://deployworkflow.vercel.app/api/step/1?stepEnd=${stepEndValue}`;
+        const bodyData = JSON.stringify(flowDataObj);
+
+        try {
+            const webhookResponse = await axios.post(webhookUrl, bodyData, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+            res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
+        } catch (webhookError) {
+            console.error('Failed to execute webhook:', webhookError);
+            res.status(500).send('Failed to execute webhook');
+        }
     } catch (error) {
-        console.error('Failed to execute webhook:', error);
+        console.error('Database operation failed:', error);
         res.status(500).send('Server error');
     } finally {
         await client.close();
     }
 });
-
-
 router.post('/workflows', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     try {

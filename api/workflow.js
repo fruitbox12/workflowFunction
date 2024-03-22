@@ -231,7 +231,7 @@ router.post('/webhook/:shortId', async (req, res) => {
     try {
         await client.connect();
         const db = client.db(dbName);
-        const workflowCollection = db.collection(`workflow_` + req.tenantId);
+        const workflowCollection = db.collection(`workflow_${req.tenantId}`);
         
         // Fetch the workflow by its shortId
 const workflow = await workflowCollection.findOne(
@@ -258,23 +258,17 @@ if (!Array.isArray(flowDataObj.nodes) || flowDataObj.nodes.length === 0) {
 }
 
 // Calculate the length of the flowData.nodes array
-const stepEndValue = flowDataObj.nodes.length;
-
-        // Construct the webhook URL with the dynamic stepEnd query parameter
-        const webhookUrl = `https://aws-steps-functions-on-vercel-mauve.vercel.app/api/step/0?stepEnd=${stepEndValue}`;
-        
-        // Prepare the body data for the webhook
-        // This is just an example, adjust according to your actual data structure and needs
-        const bodyData = JSON.stringify(flowDataObj)
-       
-
-        // Execute the webhook using axios
+try {
     const webhookResponse = await axios.post(webhookUrl, bodyData, {
         headers: { 'Content-Type': 'application/json' }
     });
     // After awaiting, you can now access webhookResponse.data
     res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
-
+} catch (error) {
+    // Handle errors that might occur during the axios request
+    console.error('Failed to execute webhook:', error);
+    res.status(500).send('Failed to execute webhook');
+}
         // Respond with success and the data received from the webhook
     } catch (error) {
         console.error('Failed to execute webhook:', error);

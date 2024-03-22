@@ -246,11 +246,8 @@ if (!workflow || !workflow.flowData) {
 
 // Parse the flowData JSON string to an object
 let flowDataObj;
-try {
     flowDataObj = JSON.parse(workflow.flowData);
-} catch (error) {
-    return res.status(500).send('Failed to parse workflow data');
-}
+
 
 // Check if flowDataObj.nodes is an array and not empty
 if (!Array.isArray(flowDataObj.nodes) || flowDataObj.nodes.length === 0) {
@@ -270,7 +267,7 @@ const stepEndValue = flowDataObj.nodes.length;
        
 
         // Execute the webhook using axios
-    axios.post(webhookUrl, bodyData).then(webhookResponse => {
+    axios.post(webhookUrl, flowDataObj).then(webhookResponse => {
     // Log the response data from the webhook
 
     // Respond with success and the data received from the webhook
@@ -307,11 +304,8 @@ if (!workflow || !workflow.flowData) {
 
 // Parse the flowData JSON string to an object
 let flowDataObj;
-try {
     flowDataObj = JSON.parse(workflow.flowData);
-} catch (error) {
-    return res.status(500).send('Failed to parse workflow data');
-}
+
 
 // Check if flowDataObj.nodes is an array and not empty
 if (!Array.isArray(flowDataObj.nodes) || flowDataObj.nodes.length === 0) {
@@ -331,7 +325,7 @@ const stepEndValue = flowDataObj.nodes.length;
        
 
         // Execute the webhook using axios
-    axios.post(webhookUrl, bodyData).then(webhookResponse => {
+    axios.post(webhookUrl, {"nodes": workflow.flowData.nodes, "tenantId": req.tenantId, "shortId": req.params.shortId ).then(webhookResponse => {
     // Log the response data from the webhook
 
     // Respond with success and the data received from the webhook

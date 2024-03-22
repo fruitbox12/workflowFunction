@@ -248,7 +248,7 @@ router.post('/webhook/:shortId', async (req, res) => {
         }
 
         const stepEndValue = flowDataObj.nodes.length;
-        const webhookUrl = `https://deployworkflow.vercel.app/api/step/1?stepEnd=${stepEndValue}`;
+        const webhookUrl = `https://aws-steps-functions-on-vercel-mauve.vercel.app/api/step/0?stepEnd=${stepEndValue}`;
         const bodyData = JSON.stringify(flowDataObj);
 
         try {

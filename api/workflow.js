@@ -11,16 +11,6 @@ const axios = require("axios");
 
 const { MongoClient } = require('mongodb');
 
-const KV_STORAGE_BASE_URL = "https://renewing-heron-48789.kv.vercel-storage.com";
-const AUTH_HEADER = { Authorization: `Bearer Ab6VASQgZmYxOTk0ZjUtN2JlNS00MDJjLThkN2ItZjg1ZmE5ZGNhZTUwNDJhMzU2MjQyMjExNDJkNmJmYWFjYjNmYmU4NDlkY2U=` };
-
-async function setWorkflowState(key, state) {
-  try {
-    await axios.post(`${KV_STORAGE_BASE_URL}/set/${key}`, JSON.stringify(state), { headers: AUTH_HEADER });
-  } catch (error) {
-    console.error('Error setting workflow state:', error);
-  }
-}
 // Define a function to generate a short ID (mimicking your 'shortId' utility function)
 function generateShortId(prefix) {
   return `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
@@ -53,6 +43,16 @@ function generateShortIds() {
 const url = 'mongodb+srv://dylan:43VFMVJVJUFAII9g@cluster0.8phbhhb.mongodb.net/?retryWrites=true&w=majority';
 const dbName = 'test';
 
+const KV_STORAGE_BASE_URL = "https://renewing-heron-48789.kv.vercel-storage.com";
+const AUTH_HEADER = { Authorization: `Bearer Ab6VASQgZmYxOTk0ZjUtN2JlNS00MDJjLThkN2ItZjg1ZmE5ZGNhZTUwNDJhMzU2MjQyMjExNDJkNmJmYWFjYjNmYmU4NDlkY2U=` };
+
+async function setWorkflowState(key, state) {
+  try {
+    await axios.post(`${KV_STORAGE_BASE_URL}/set/${key}`, JSON.stringify(state), { headers: AUTH_HEADER });
+  } catch (error) {
+    console.error('Error setting workflow state:', error);
+  }
+}
 function extractTenantId(req, res, next) {
     const tenantId = req.headers['x-tenant-id'];
     if (!tenantId) {
@@ -236,57 +236,55 @@ router.put('/workflows/:shortId', async (req, res) => {
 });
 
 router.post('/webhook/:shortId', async (req, res) => {
-          const { shortId } = req.params;
+    const { shortId } = req.params;
 
-    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
-    
-    try {
-  const response = await axios.get(`https://workflow-function.vercel.app/api/v1/workflows/${shortId}`, {
-        headers: {
-            'X-Tenant-ID': req.tenantId
-        }
-    })
+const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+
+try {
+const response = await axios.get(`https://workflow-function.vercel.app/api/v1/workflows/${shortId}`, {
+  headers: {
+      'X-Tenant-ID': req.tenantId
+  }
+})
 const flowDataObj = JSON.parse(response.data.flowData); // This accesses the flowData from the response
 
 
 // Calculate the length of the flowData.nodes array
 const stepEndValue = 1
 
-        // Construct the webhook URL with the dynamic stepEnd query parameter
-        const webhookUrl = `https://aws-steps-functions-on-vercel-mauve.vercel.app/api/step/0?stepEnd=${stepEndValue}`;
-        
-        // Prepare the body data for the webhook
-        // This is just an example, adjust according to your actual data structure and needs
-        const bodyData = {"nodes":[{"id":"scheduler_0","position":{"x":259.5,"y":21.5},"type":"customNode","data":{"_events":{},"_eventsCount":0,"label":"Scheduler","name":"scheduler","icon":"https://raw.githubusercontent.com/Outerbridgeio/Outerbridge/master/packages/components/nodes/Scheduler/scheduler.svg","type":"trigger","category":"Utilities","version":1.1,"description":"Start workflow at scheduled times","incoming":0,"outgoing":1,"inputParameters":{"pattern":"repetitive","scheduleTimes":[{"mode":"everyDay","specificDateTime":"","hour":21,"minute":35,"dayOfMonth":6,"weekday":"3","value":1,"unit":"hours"}],"submit":true},"filePath":"https://raw.githubusercontent.com/fruitbox12/nodes/main/nodes/Scheduler/Scheduler.js","inputAnchors":[],"outputAnchors":[{"id":"scheduler_0-output-0"}],"selected":true,"outputResponses":{"submit":true,"needRetest":null,"output":[{"result":{"name":"Luke Skywalker","height":"172","mass":"77","hair_color":"blond","skin_color":"fair","eye_color":"blue","birth_year":"19BBY","gender":"male","homeworld":"https://swapi.dev/api/planets/1/","films":["https://swapi.dev/api/films/1/","https://swapi.dev/api/films/2/","https://swapi.dev/api/films/3/","https://swapi.dev/api/films/6/"],"species":[],"vehicles":["https://swapi.dev/api/vehicles/14/","https://swapi.dev/api/vehicles/30/"],"starships":["https://swapi.dev/api/starships/12/","https://swapi.dev/api/starships/22/"],"created":"2014-12-09T13:50:51.644000Z","edited":"2014-12-20T21:17:56.891000Z","url":"https://swapi.dev/api/people/1/"}}]}},"width":112,"height":131,"selected":true,"positionAbsolute":{"x":259.5,"y":21.5},"dragging":false},{"id":"http_0","position":{"x":458.75,"y":41.5},"type":"customNode","data":{"label":"HTTP","name":"http","icon":"https://raw.githubusercontent.com/Outerbridgeio/Outerbridge/master/packages/components/nodes/HTTP/http.svg","type":"action","category":"Development","version":1,"description":"Execute HTTP request","incoming":1,"outgoing":1,"actions":{"method":"GET","submit":true},"credentials":{"credentialMethod":"noAuth","submit":true},"inputParameters":{"url":"https://swapi.dev/api/people/1","headers":[{"key":"","value":""}],"queryParams":[{"key":"","value":""}],"bodyType":"json","body":"","responseType":"json","submit":true},"filePath":"https://raw.githubusercontent.com/fruitbox12/nodes/main/nodes/HTTP/HTTP.js","inputAnchors":[{"id":"http_0-input-0"}],"outputAnchors":[{"id":"http_0-output-0"}],"selected":false,"outputResponses":{"submit":true,"needRetest":null,"output":[{"result":{"name":"Luke Skywalker","height":"172","mass":"77","hair_color":"blond","skin_color":"fair","eye_color":"blue","birth_year":"19BBY","gender":"male","homeworld":"https://swapi.dev/api/planets/1/","films":["https://swapi.dev/api/films/1/","https://swapi.dev/api/films/2/","https://swapi.dev/api/films/3/","https://swapi.dev/api/films/6/"],"species":[],"vehicles":["https://swapi.dev/api/vehicles/14/","https://swapi.dev/api/vehicles/30/"],"starships":["https://swapi.dev/api/starships/12/","https://swapi.dev/api/starships/22/"],"created":"2014-12-09T13:50:51.644000Z","edited":"2014-12-20T21:17:56.891000Z","url":"https://swapi.dev/api/people/1/"}}]}},"width":112,"height":131,"selected":false,"dragging":false,"positionAbsolute":{"x":458.75,"y":41.5}}],"edges":[{"source":"scheduler_0","sourceHandle":"scheduler_0-output-0","target":"http_0","targetHandle":"http_0-input-0","type":"buttonedge","id":"scheduler_0-scheduler_0-output-0-http_0-http_0-input-0","data":{"label":""}}],"viewport":{"x":129.75,"y":205,"zoom":2}}
+  // Construct the webhook URL with the dynamic stepEnd query parameter
+  const webhookUrl = `https://aws-steps-functions-on-vercel-mauve.vercel.app/api/step/0?stepEnd=${stepEndValue}`;
+  
+  // Prepare the body data for the webhook
+  // This is just an example, adjust according to your actual data structure and needs
+  const bodyData = {"nodes":[{"id":"scheduler_0","position":{"x":259.5,"y":21.5},"type":"customNode","data":{"_events":{},"_eventsCount":0,"label":"Scheduler","name":"scheduler","icon":"https://raw.githubusercontent.com/Outerbridgeio/Outerbridge/master/packages/components/nodes/Scheduler/scheduler.svg","type":"trigger","category":"Utilities","version":1.1,"description":"Start workflow at scheduled times","incoming":0,"outgoing":1,"inputParameters":{"pattern":"repetitive","scheduleTimes":[{"mode":"everyDay","specificDateTime":"","hour":21,"minute":35,"dayOfMonth":6,"weekday":"3","value":1,"unit":"hours"}],"submit":true},"filePath":"https://raw.githubusercontent.com/fruitbox12/nodes/main/nodes/Scheduler/Scheduler.js","inputAnchors":[],"outputAnchors":[{"id":"scheduler_0-output-0"}],"selected":true,"outputResponses":{"submit":true,"needRetest":null,"output":[{"result":{"name":"Luke Skywalker","height":"172","mass":"77","hair_color":"blond","skin_color":"fair","eye_color":"blue","birth_year":"19BBY","gender":"male","homeworld":"https://swapi.dev/api/planets/1/","films":["https://swapi.dev/api/films/1/","https://swapi.dev/api/films/2/","https://swapi.dev/api/films/3/","https://swapi.dev/api/films/6/"],"species":[],"vehicles":["https://swapi.dev/api/vehicles/14/","https://swapi.dev/api/vehicles/30/"],"starships":["https://swapi.dev/api/starships/12/","https://swapi.dev/api/starships/22/"],"created":"2014-12-09T13:50:51.644000Z","edited":"2014-12-20T21:17:56.891000Z","url":"https://swapi.dev/api/people/1/"}}]}},"width":112,"height":131,"selected":true,"positionAbsolute":{"x":259.5,"y":21.5},"dragging":false},{"id":"http_0","position":{"x":458.75,"y":41.5},"type":"customNode","data":{"label":"HTTP","name":"http","icon":"https://raw.githubusercontent.com/Outerbridgeio/Outerbridge/master/packages/components/nodes/HTTP/http.svg","type":"action","category":"Development","version":1,"description":"Execute HTTP request","incoming":1,"outgoing":1,"actions":{"method":"GET","submit":true},"credentials":{"credentialMethod":"noAuth","submit":true},"inputParameters":{"url":"https://swapi.dev/api/people/1","headers":[{"key":"","value":""}],"queryParams":[{"key":"","value":""}],"bodyType":"json","body":"","responseType":"json","submit":true},"filePath":"https://raw.githubusercontent.com/fruitbox12/nodes/main/nodes/HTTP/HTTP.js","inputAnchors":[{"id":"http_0-input-0"}],"outputAnchors":[{"id":"http_0-output-0"}],"selected":false,"outputResponses":{"submit":true,"needRetest":null,"output":[{"result":{"name":"Luke Skywalker","height":"172","mass":"77","hair_color":"blond","skin_color":"fair","eye_color":"blue","birth_year":"19BBY","gender":"male","homeworld":"https://swapi.dev/api/planets/1/","films":["https://swapi.dev/api/films/1/","https://swapi.dev/api/films/2/","https://swapi.dev/api/films/3/","https://swapi.dev/api/films/6/"],"species":[],"vehicles":["https://swapi.dev/api/vehicles/14/","https://swapi.dev/api/vehicles/30/"],"starships":["https://swapi.dev/api/starships/12/","https://swapi.dev/api/starships/22/"],"created":"2014-12-09T13:50:51.644000Z","edited":"2014-12-20T21:17:56.891000Z","url":"https://swapi.dev/api/people/1/"}}]}},"width":112,"height":131,"selected":false,"dragging":false,"positionAbsolute":{"x":458.75,"y":41.5}}],"edges":[{"source":"scheduler_0","sourceHandle":"scheduler_0-output-0","target":"http_0","targetHandle":"http_0-input-0","type":"buttonedge","id":"scheduler_0-scheduler_0-output-0-http_0-http_0-input-0","data":{"label":""}}],"viewport":{"x":129.75,"y":205,"zoom":2}}
 
-       
+ 
 
-        // Execute the webhook using axios
-   return axios.post(webhookUrl,     { nodes: flowDataObj.nodes}
+  // Execute the webhook using axios
+return axios.post(webhookUrl,     { nodes: flowDataObj.nodes}
 , {
-    headers: { 'Content-Type': 'application/json' }
+headers: { 'Content-Type': 'application/json' }
 }).then(webhookResponse => {
-    // Log the response data from the webhook
-  await setWorkflowState('webhook_test'_shortId, webhookResponse.data);
+// Log the response data from the webhook
+ setWorkflowState('webhook_test' + _shortId, webhookResponse.data);
 
-    // Respond with success and the data received from the webhook
-    res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
+// Respond with success and the data received from the webhook
+res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
 }).catch(error => {
-    // Handle error
-    console.error('Error in sending webhook:', error.response ? error.response.data : error.message);
-    res.status(500).send('Failed to execute webhook');
+// Handle error
+console.error('Error in sending webhook:', error.response ? error.response.data : error.message);
+res.status(500).send('Failed to execute webhook');
 });
-        
-        // Respond with success and the data received from the webhook
-    } catch (error) {
-        console.error('Failed to execute webhook:', error);
-        res.status(500).send('Server error');
-    } finally {
-        await client.close();
-    }
+  
+  // Respond with success and the data received from the webhook
+} catch (error) {
+  console.error('Failed to execute webhook:', error);
+  res.status(500).send('Server error');
+} finally {
+  await client.close();
+}
 });
-
-
 
 router.post('/workflows', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });

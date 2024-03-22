@@ -225,6 +225,7 @@ router.put('/workflows/:shortId', async (req, res) => {
     }
 });
 
+
 router.post('/webhook/:shortId', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     
@@ -232,42 +233,43 @@ router.post('/webhook/:shortId', async (req, res) => {
         await client.connect();
         const db = client.db(dbName);
         const workflowCollectionName = `workflow_${req.tenantId}`;
-        const workflow = await  db.collection(workflowCollectionName).findOne({ shortId: shortId });
+        const workflow = await db.collection(workflowCollectionName).findOne({ shortId: shortId });
 
+        if (!workflow) {
+            // Handle the case where no workflow is found
+            console.log('No workflow found for shortId:', shortId);
+            return res.status(404).send('Workflow not found or workflow data is incomplete');
 
-console.log(workflow)
-// Check if the workflow and flowData exist
-if (!workflow || !workflow.flowData) {
-    return res.status(404).send('Workflow not found or workflow data is incomplete');
-}
+        } else if (!workflow.flowData) {
+            // Handle the case where workflow doesn't have flowData
+            console.log('Workflow found but lacks flowData:', shortId);
+        } else {
+            // Assuming workflow.flowData is a JSON string, parse it
+            try {
+                const flowDataObj = JSON.parse(workflow.flowData);
+                // Now flowDataObj is a JavaScript object you can work with
+              const stepEndValue = flowDataObj.nodes.length;
 
-// Parse the flowData JSON string to an object
-let flowDataObj;
-try {
-    flowDataObj = JSON.parse(workflow.flowData);
-} catch (error) {
-    return res.status(500).send('Failed to parse workflow data');
-}
+                console.log(flowDataObj);
+                  
+                    const webhookUrl = `https://aws-steps-functions-on-vercel-mauve.vercel.app/api/step/0?stepEnd=${stepEndValue}`;
+        const bodyData = JSON.stringify({ data: flowDataObj }); // Example of constructing bodyData
 
-// Check if flowDataObj.nodes is an array and not empty
-if (!Array.isArray(flowDataObj.nodes) || flowDataObj.nodes.length === 0) {
-    return res.status(404).send('Workflow data is incomplete');
-  console.log('Workflow data is incomplete')
-}
+                    const webhookResponse = await axios.post(webhookUrl, bodyData, {
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    // After awaiting, you can now access webhookResponse.data
+                 return  res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
+                // If you need to aggregate/manipulate data in flowDataObj, do it here
+                
+            } catch (e) {
+                console.error('Failed to parse flowData for workflow:', shortId, e);
+                // Handle parsing error
+                 return         res.status(500).send('Failed to execute webhook');
 
-// Calculate the length of the flowData.nodes array
-try {
-    const webhookResponse = await axios.post(webhookUrl, bodyData, {
-        headers: { 'Content-Type': 'application/json' }
-    });
-    // After awaiting, you can now access webhookResponse.data
-    res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
-} catch (error) {
-    // Handle errors that might occur during the axios request
-    console.error('Failed to execute webhook:', error);
-    res.status(500).send('Failed to execute webhook');
-}
-        // Respond with success and the data received from the webhook
+            }
+        }
+
     } catch (error) {
         console.error('Failed to execute webhook:', error);
         res.status(500).send('Server error');
@@ -275,6 +277,7 @@ try {
         await client.close();
     }
 });
+
 
 
 router.post('/workflows', async (req, res) => {

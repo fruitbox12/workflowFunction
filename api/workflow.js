@@ -298,7 +298,7 @@ router.post('/workflows', async (req, res) => {
 
         // After inserting the workflow, fetch additional data with axios
         try {
-            const response = await axios.get(`https://workflow-function.vercel.app/api/v1/workflows/${workflowData.shortId}`, {
+            const response = await axios.post(`https://workflow-function.vercel.app/api/v1/workflows/${workflowData.shortId}`, {
                 headers: {
                     'X-Tenant-ID': req.tenantId
                 }

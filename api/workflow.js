@@ -238,7 +238,7 @@ const flowDataObj = response.data.nodes; // This accesses the flowData from the 
 
 
 // Calculate the length of the flowData.nodes array
-const stepEndValue = response.data.nodes.length;
+const stepEndValue = JSON.parse(response.data.nodes).length;
 
         // Construct the webhook URL with the dynamic stepEnd query parameter
         const webhookUrl = `https://aws-steps-functions-on-vercel-mauve.vercel.app/api/step/0?stepEnd=${stepEndValue}`;

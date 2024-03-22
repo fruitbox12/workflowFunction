@@ -231,12 +231,10 @@ router.post('/webhook/:shortId', async (req, res) => {
     try {
         await client.connect();
         const db = client.db(dbName);
-        const workflowCollection = db.collection(`workflow_${req.tenantId}`);
-        
-        // Fetch the workflow by its shortId
-const workflow = await workflowCollection.findOne(
-  { shortId: req.params.shortId }
-);
+        const workflowCollectionName = `workflow_${req.tenantId}`;
+        const workflow = await  db.collection(workflowCollectionName).findOne({ shortId: shortId });
+
+
 console.log(workflow)
 // Check if the workflow and flowData exist
 if (!workflow || !workflow.flowData) {

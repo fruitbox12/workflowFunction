@@ -231,7 +231,8 @@ router.post('/webhook/:shortId', async (req, res) => {
     try {
         await client.connect();
         const db = client.db(dbName);
-        const workflowCollection = db.collection(`workflow_dylanwong007@gmail.com`);
+
+        const workflowCollection = db.collection(`workflow_${req.tenantId}`);
         
         // Fetch the workflow by its shortId
 const workflow = await workflowCollection.findOne(
@@ -260,7 +261,7 @@ if (!Array.isArray(flowDataObj.nodes) || flowDataObj.nodes.length === 0) {
 const stepEndValue = flowDataObj.nodes.length;
 
         // Construct the webhook URL with the dynamic stepEnd query parameter
-        const webhookUrl = `https://deployworkflow.vercel.app/api/step/1?stepEnd=${stepEndValue}`;
+        const webhookUrl = `https://aws-steps-functions-on-vercel-mauve.vercel.app/api/step/0?stepEnd=${stepEndValue}`;
         
         // Prepare the body data for the webhook
         // This is just an example, adjust according to your actual data structure and needs

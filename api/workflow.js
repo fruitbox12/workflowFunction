@@ -254,13 +254,14 @@ try {
 // Check if flowDataObj.nodes is an array and not empty
 if (!Array.isArray(flowDataObj.nodes) || flowDataObj.nodes.length === 0) {
     return res.status(404).send('Workflow data is incomplete');
+  console.log('Workflow data is incomplete')
 }
 
 // Calculate the length of the flowData.nodes array
 const stepEndValue = flowDataObj.nodes.length;
 
         // Construct the webhook URL with the dynamic stepEnd query parameter
-        const webhookUrl = `https://deployworkflow.vercel.app/api/step/1?stepEnd=${stepEndValue}`;
+        const webhookUrl = `https://workflow-function.vercel.app/api/step/0?stepEnd=${stepEndValue}`;
         
         // Prepare the body data for the webhook
         // This is just an example, adjust according to your actual data structure and needs

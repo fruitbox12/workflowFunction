@@ -248,7 +248,7 @@ router.post('/webhook/:shortId', async (req, res) => {
     })
 const flowDataObj = JSON.parse(response.data.flowData); // This accesses the flowData from the response
 flowDataObj.shortId = shortId;
-
+flowDataObj.tenantId = req.tenantId;
 
 // Calculate the length of the flowData.nodes array
 const stepEndValue = 1
@@ -263,7 +263,7 @@ const stepEndValue = 1
        
 
         // Execute the webhook using axios
-   return axios.post(webhookUrl,     { nodes: flowDataObj.nodes, shortId: flowDataObj.shortId }
+   return axios.post(webhookUrl,     { nodes: flowDataObj.nodes, shortId: flowDataObj.shortId, tenantId: flowDataObj.tenantId }
 , {
     headers: { 'Content-Type': 'application/json' }
 }).then(webhookResponse => {

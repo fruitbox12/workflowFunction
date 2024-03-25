@@ -251,7 +251,7 @@ flowDataObj.shortId = shortId;
 flowDataObj.tenantId = req.tenantId;
 
 // Calculate the length of the flowData.nodes array
-const stepEndValue = 1
+const stepEndValue = flowDataObj.nodes.length
 
         // Construct the webhook URL with the dynamic stepEnd query parameter
         const webhookUrl = `https://deployworkflow.vercel.app/api/step/1?stepEnd=${stepEndValue}`;

@@ -251,8 +251,19 @@ flowDataObj.shortId = shortId;
 flowDataObj.tenantId = req.tenantId;
 
 // Calculate the length of the flowData.nodes array
-const stepEndValue = flowDataObj.nodes.length
+ let nodesArray = [];
+    if (Array.isArray(flowDataObj.nodes)) {
+        nodesArray = flowDataObj.nodes;
+    } else if (flowDataObj.nodes !== undefined && flowDataObj.nodes !== null) {
+        // Treat non-array nodes as a single-element array
+        nodesArray = [flowDataObj.nodes];
+    } else {
+        console.error('nodes is missing in flowDataObj');
+        // Handle the missing nodes appropriately
+    }
 
+    // Now nodesArray is guaranteed to be an array, we can safely calculate its length
+    const stepEndValue = nodesArray.length;
         // Construct the webhook URL with the dynamic stepEnd query parameter
         const webhookUrl = `https://deployworkflow.vercel.app/api/step/1?stepEnd=${stepEndValue}`;
         

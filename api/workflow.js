@@ -177,8 +177,35 @@ router.post('/workflows/deploy/:shortId', async (req, res) => {
         await client.close();
     }
 });
-// Assuming `url`, `dbName` are defined elsewhere in your code
+// DELETE Doc
+router.post('/workflows/delete/:shortId', async (req, res) => {
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+    try {
+              const { shortId } = req.params;
 
+        await client.connect();
+        console.log('Connected successfully to server');
+
+        const db = client.db(dbName);
+        const workflowCollection = db.collection(`workflow_${req.tenantId}`)
+
+        // Extract the shortId from the request parameters
+
+        // Use the request body for the update
+      
+        // Update the workflow
+        const updateResult = await workflowCollection.deleteOne({ shortId: shortId });
+       
+
+            return res.status(200).json();
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send('Server error');
+    } finally {
+        await client.close();
+    }
+});
 router.put('/workflows/:shortId', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     try {

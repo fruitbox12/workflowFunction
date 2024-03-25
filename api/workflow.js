@@ -263,7 +263,7 @@ flowDataObj.tenantId = req.tenantId;
     }
 
     // Now nodesArray is guaranteed to be an array, we can safely calculate its length
-    const stepEndValue = nodesArray.length;
+    const stepEndValue = nodesArray.length - 1;
         // Construct the webhook URL with the dynamic stepEnd query parameter
         const webhookUrl = `https://deployworkflow.vercel.app/api/step/1?stepEnd=${stepEndValue}`;
         

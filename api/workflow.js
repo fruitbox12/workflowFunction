@@ -264,6 +264,7 @@ router.put('/workflows/:shortId', async (req, res) => {
 
 router.post('/webhook/:shortId', async (req, res) => {
           const { shortId } = req.params;
+          const webhookBody = req.body || {}; // This contains whatever JSON body was sent with the request
 
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
     
@@ -301,7 +302,7 @@ flowDataObj.tenantId = req.tenantId;
        
 
         // Execute the webhook using axios
-   return axios.post(webhookUrl,     { nodes: flowDataObj.nodes, shortId: flowDataObj.shortId, tenantId: flowDataObj.tenantId }
+   return axios.post(webhookUrl,     { nodes: flowDataObj.nodes, shortId: flowDataObj.shortId, tenantId: flowDataObj.tenantId, trigger_output: webhookBody }
 , {
     headers: { 'Content-Type': 'application/json' }
 }).then(webhookResponse => {

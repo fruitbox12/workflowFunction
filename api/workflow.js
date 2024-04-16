@@ -324,6 +324,56 @@ router.put('/workflows/:shortId', async (req, res) => {
     }
 });
 
+router.post('/marketplace', async (req, res) => {
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+    try {
+        await client.connect();
+        const db = client.db(dbName);
+        const marketplaceCollection = db.collection(`marketplace`);
+
+        // Extract the marketplace item data from the request body
+        const { name, description, price } = req.body;
+        const createdBy = req.tenantId; // Using the tenant ID as createdBy
+
+        // Insert the new marketplace item into the collection
+        const insertResult = await marketplaceCollection.insertOne({
+            name,
+            description,
+            createdBy,
+            price
+        });
+
+        // Respond with the inserted item data
+        res.status(201).json(insertResult.ops[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    } finally {
+        await client.close();
+    }
+});
+
+
+// Route to retrieve all marketplace items
+router.get('/marketplace', async (req, res) => {
+    const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+    try {
+        await client.connect();
+        const db = client.db(dbName);
+
+        // Fetch all marketplace items from the collection
+        const marketplaceCollection = db.collection(`marketplace`);
+        const marketplaceItems = await marketplaceCollection.find({}).toArray();
+
+        // Respond with the marketplace items
+        res.json(marketplaceItems);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    } finally {
+        await client.close();
+    }
+});
 
 router.post('/webhook2/:shortId', async (req, res) => {
           const { shortId } = req.params;

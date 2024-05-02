@@ -10,6 +10,7 @@ const axios = require("axios");
  */
 
 const { MongoClient } = require('mongodb');
+const { getMongoManager } = require('typeorm');
 
 // Define a function to generate a short ID (mimicking your 'shortId' utility function)
 function generateShortId(prefix) {
@@ -200,6 +201,39 @@ router.get('/workflow', async (req, res) => {
     } finally {
         // Ensure the client is closed when the operation is complete
         await client.close();
+    }
+});
+
+// POST: Create a new Credential in a tenant-specific collection
+router.post('/credentials', async (req, res) => {
+    const manager = getMongoManager();
+    const { name, nodeCredentialName, credentialData } = req.body;
+    const collectionName = `credentials_${req.tenantId}`; // Tenant-specific collection
+
+    try {
+        const newCredential = manager.create(Credential, {
+            name,
+            nodeCredentialName,
+            credentialData
+        });
+
+        await manager.save(newCredential, { database: req.tenantId, collection: collectionName });
+        res.status(201).json(newCredential);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+// GET: Retrieve all Credentials from a tenant-specific collection
+router.get('/credentials', async (req, res) => {
+    const manager = getMongoManager();
+    const collectionName = `credentials_${req.tenantId}`;
+
+    try {
+        const credentials = await manager.find(Credential, { where: {}, options: { collection: collectionName } });
+        res.json(credentials);
+    } catch (error) {
+        res.status(500).send(error.message);
     }
 });
 

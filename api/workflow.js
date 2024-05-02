@@ -228,14 +228,24 @@ router.post('/credentials', async (req, res) => {
 router.get('/credentials', async (req, res) => {
     const manager = getMongoManager();
     const collectionName = `credentials_${req.tenantId}`;
+    const { nodeCredentialName } = req.query; // Extract the nodeCredentialName from the query parameters
 
     try {
-        const credentials = await manager.find(Credential, { where: {}, options: { collection: collectionName } });
+        let findOptions = {};
+        if (nodeCredentialName) {
+            // Apply the filter if nodeCredentialName is provided
+            findOptions = {
+                where: { nodeCredentialName: nodeCredentialName }
+            };
+        }
+
+        const credentials = await manager.find(Credential, { ...findOptions, options: { collection: collectionName } });
         res.json(credentials);
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
+
 
 router.post('/workflows/deploy/:shortId', async (req, res) => {
     const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });

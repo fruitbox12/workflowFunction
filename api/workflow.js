@@ -102,7 +102,7 @@ flowDataObj.tenantId = tenantId;
        
 
         // Execute the webhook using axios
-   return axios.post(webhookUrl,     { nodes: flowDataObj.nodes, shortId: flowDataObj.shortId, tenantId: flowDataObj.tenantId, trigger_output:  generateShortIds(flowDataObj.shortId), webhook_body: webhookBody }
+   return axios.post(webhookUrl,     { nodes: flowDataObj.nodes, shortId: flowDataObj.shortId, tenantId: flowDataObj.tenantId, trigger_output:  generateShortIds(flowDataObj.shortId), webhook_body: webhookBody, edges: flowDataObj.edges }
 , {
     headers: { 'Content-Type': 'application/json' }
 }).then(webhookResponse => {

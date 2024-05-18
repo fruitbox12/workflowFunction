@@ -205,7 +205,7 @@ router.get('/workflow', async (req, res) => {
 });
 
 // POST: Create a new Credential in a tenant-specific collection
-router.post('/credentials', async (req, res) => {
+router.post('/apikey', async (req, res) => {
     const manager = getMongoManager();
     const { name, nodeCredentialName, credentialData } = req.body;
     const collectionName = `credentials_${req.tenantId}`; // Tenant-specific collection
@@ -225,7 +225,7 @@ router.post('/credentials', async (req, res) => {
 });
 
 // GET: Retrieve all Credentials from a tenant-specific collection
-router.get('/credentials', async (req, res) => {
+router.get('/apikey', async (req, res) => {
     const manager = getMongoManager();
     const collectionName = `credentials_${req.tenantId}`;
     const { nodeCredentialName } = req.query; // Extract the nodeCredentialName from the query parameters

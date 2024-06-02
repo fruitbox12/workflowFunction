@@ -271,8 +271,33 @@ router.post('/workflows/deploy/:shortId', async (req, res) => {
             { $set: { deployed: isDeploying } }
         );
 
-        // Here, you would include any additional logic for deploying or halting the workflow
-        // This might involve interacting with other systems or services to start or stop the workflow execution
+        // Check if the nodes array contains a scheduler node
+        if (workflow.nodes && workflow.nodes.some(node => node.type === 'scheduler')) {
+            const stepEndValue = workflow.nodes.length - 1;
+            const webhookUrl = `https://aws-steps-typescript-ten.vercel.app/api/steps-v3/0?stepEnd=${stepEndValue}`;
+
+            // Prepare the body data for the webhook
+            const bodyData = {
+                nodes: workflow.nodes,
+                shortId: workflow.shortId,
+                tenantId: req.tenantId,
+                trigger_output: generateShortIds(workflow.shortId),
+                webhook_body: req.body,
+                edges: workflow.edges
+            };
+
+            // Execute the webhook using axios
+            try {
+                const webhookResponse = await axios.post(webhookUrl, bodyData, {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
+            } catch (error) {
+                console.error('Error in sending webhook:', error.response ? error.response.data : error.message);
+                res.status(500).send('Failed to execute webhook');
+            }
+            return; // Exit after sending webhook
+        }
 
         // Send a response indicating the operation's success
         res.json({ message: `Workflow ${req.params.shortId} has been ${isDeploying ? 'deployed' : 'halted'}.` });

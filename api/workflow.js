@@ -274,7 +274,7 @@ router.post('/workflows/deploy/:shortId', async (req, res) => {
         // Check if the nodes array contains a scheduler node
         if (workflow.nodes && workflow.nodes.some(node => node.type === 'scheduler')) {
             const stepEndValue = workflow.nodes.length - 1;
-            const webhookUrl = `https://aws-steps-typescript-ten.vercel.app/api/steps-v3/0?stepEnd=${stepEndValue}`;
+            const webhookUrl = `https://aws-steps-typescript-ten.vercel.app/api/step-v3/0`;
 
             // Prepare the body data for the webhook
             const bodyData = {

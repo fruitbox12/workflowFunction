@@ -98,6 +98,7 @@ router.post('/webhook/:shortId', async (req, res) => {
   const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
   try {
+    await client.connect();
     const response = await axios.get(`https://workflow-function.vercel.app/api/v1/workflows/${shortId}`, {
       headers: {
         'X-Tenant-ID': tenantId
@@ -119,13 +120,21 @@ router.post('/webhook/:shortId', async (req, res) => {
     const stepEndValue = nodesArray.length - 1;
     const webhookUrl = `https://aws-steps-typescript-ten.vercel.app/api/step-v3/0`;
 
-    return axios.post(webhookUrl, { nodes: flowDataObj.nodes, shortId: flowDataObj.shortId, tenantId: flowDataObj.tenantId, trigger_output: generateShortIds(flowDataObj.shortId), webhook_body: webhookBody, edges: flowDataObj.edges }, {
+    axios.post(webhookUrl, {
+      nodes: flowDataObj.nodes,
+      shortId: flowDataObj.shortId,
+      tenantId: flowDataObj.tenantId,
+      trigger_output: generateShortIds(flowDataObj.shortId),
+      webhook_body: webhookBody,
+      edges: flowDataObj.edges
+    }, {
       headers: { 'Content-Type': 'application/json' }
-    }).then(webhookResponse => {
-      res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
+    }).then(async webhookResponse => {
+      // Save the response in Redis
+      const redisKey = `webhook_${shortId}`;
+      await setWorkflowState(redisKey, { status: 'completed', data: webhookResponse.data });
 
-      // Notify all SSE clients
-      sendEventsToAll({ message: 'Webhook executed successfully', data: webhookResponse.data });
+      res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
 
     }).catch(error => {
       console.error('Error in sending webhook:', error.response ? error.response.data : error.message);

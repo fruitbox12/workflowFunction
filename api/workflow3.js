@@ -131,7 +131,7 @@ router.post('/webhook/:shortId', async (req, res) => {
       headers: { 'Content-Type': 'application/json' }
     }).then(async webhookResponse => {
       // Save the response in Redis
-      const redisKey = `webhook_${shortId}`;
+      const redisKey = `webhook_6679dd1a82ab49e66504c6a7`;
       await setWorkflowState(redisKey, { status: 'completed', data: webhookResponse.data });
 
       res.json({ message: 'Webhook executed successfully', data: webhookResponse.data });
